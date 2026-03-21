@@ -12,7 +12,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.vendor import Vendor
 from app.models.stock_request import StockInboundRequest, StockRequestStatus
-from app.models.inventory import Inventory
+from app.models.inventory import Inventory, StockMovement, MovementType
 from app.schemas.vendor import VendorCreate, VendorUpdate, VendorResponse, VendorListResponse
 from app.schemas.stock_request import StockRequestReview, StockRequestReception
 from app.utils.auth import get_current_user
@@ -405,19 +405,35 @@ async def receive_stock_request(
         if inventory:
             # Update existing inventory
             inventory.quantity += reception.received_quantity
+            inventory.available_quantity = inventory.quantity - (inventory.reserved_quantity or 0)
             inventory.updated_at = datetime.utcnow().isoformat()
         else:
             # Create new inventory record
             inventory = Inventory(
-                business_id=current_user.business_id,
                 product_id=stock_request.product_id,
                 warehouse_id=stock_request.warehouse_id,
                 vendor_id=vendor_id,
                 quantity=reception.received_quantity,
                 unit_cost=stock_request.unit_cost,
-                reserved_quantity=0
+                reserved_quantity=0,
+                available_quantity=reception.received_quantity
             )
             db.add(inventory)
+        
+        # Also create a stock movement record for audit trail
+        movement = StockMovement(
+            product_id=stock_request.product_id,
+            warehouse_id=stock_request.warehouse_id,
+            movement_type=MovementType.IN,
+            quantity=reception.received_quantity,
+            reference_type="stock_request",
+            reference_id=stock_request.id,
+            unit_cost=stock_request.unit_cost,
+            total_cost=(stock_request.unit_cost or 0) * reception.received_quantity,
+            performed_by=current_user.id,
+            notes=f"Received from stock request {stock_request.request_number}"
+        )
+        db.add(movement)
     
     db.commit()
     
