@@ -406,7 +406,7 @@ async def receive_stock_request(
             # Update existing inventory
             inventory.quantity += reception.received_quantity
             inventory.available_quantity = inventory.quantity - (inventory.reserved_quantity or 0)
-            inventory.updated_at = datetime.utcnow().isoformat()
+            inventory.updated_at = datetime.utcnow()
         else:
             # Create new inventory record
             inventory = Inventory(
