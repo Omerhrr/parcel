@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}New Stock Movement - ParcelFlow{% endblock %}
+
+{% block page_title %}New Stock Movement{% endblock %}
+
+{% block content %}
+
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Record inventory changes</p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{{ url_for('inventory.movements') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+        </a>
+    </div>
+</div>
+
+<form method="POST" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Movement Details</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div>
+                    <label for="movement_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Movement Type *</label>
+                    <select name="movement_type" id="movement_type" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="in">Stock In (Receive)</option>
+                        <option value="out">Stock Out (Issue)</option>
+                        <option value="transfer">Transfer</option>
+                        <option value="return">Return</option>
+                        <option value="adjustment">Adjustment</option>
+                        <option value="damage">Damage/Loss</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="product_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Product *</label>
+                    <div class="flex gap-2">
+                        <select name="product_id" id="product_id" required
+                                class="mt-1 flex-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="">Select product</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }} {% if product.sku %}({{ product.sku }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        <a href="{{ url_for('inventory.create_product') }}" 
+                           class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600"
+                           title="Add new product">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </a>
+                    </div>
+                    {% if not products %}
+                    <p class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        No products available. <a href="{{ url_for('inventory.create_product') }}" class="underline font-medium">Add a product first</a>.
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="warehouse_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Warehouse *</label>
+                    <div class="flex gap-2">
+                        <select name="warehouse_id" id="warehouse_id" required
+                                class="mt-1 flex-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="">Select warehouse</option>
+                            {% for wh in warehouses %}
+                            <option value="{{ wh.id }}">{{ wh.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <a href="{{ url_for('inventory.create_warehouse') }}" 
+                           class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600"
+                           title="Add new warehouse">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </a>
+                    </div>
+                    {% if not warehouses %}
+                    <p class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        No warehouses available. <a href="{{ url_for('inventory.create_warehouse') }}" class="underline font-medium">Add a warehouse first</a>.
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="to_warehouse_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">To Warehouse (for transfers)</label>
+                    <select name="to_warehouse_id" id="to_warehouse_id"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Select destination warehouse</option>
+                        {% for wh in warehouses %}
+                        <option value="{{ wh.id }}">{{ wh.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity *</label>
+                    <input type="number" name="quantity" id="quantity" min="1" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="unit_cost" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit Cost</label>
+                    <input type="number" name="unit_cost" id="unit_cost" step="0.01"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+            </div>
+            
+            <div class="mt-6">
+                <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                <textarea name="notes" id="notes" rows="2"
+                          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          placeholder="Optional notes about this movement..."></textarea>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex justify-end space-x-3">
+        <a href="{{ url_for('inventory.movements') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+        </a>
+        <button type="submit" class="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+            Record Movement
+        </button>
+    </div>
+    
+</form>
+
+{% endblock %}

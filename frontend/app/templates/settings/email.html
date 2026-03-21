@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Email Settings - ParcelFlow{% endblock %}
+
+{% block page_title %}Email Settings{% endblock %}
+
+{% block content %}
+
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure SMTP settings for sending emails</p>
+    </div>
+</div>
+
+<!-- Settings Navigation -->
+<div class="mb-6">
+    <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto">
+        <a href="{{ url_for('settings.index') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Overview
+        </a>
+        <a href="{{ url_for('settings.business') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Business
+        </a>
+        <a href="{{ url_for('users.profile') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Profile
+        </a>
+        <a href="{{ url_for('settings.email_settings') }}" class="border-primary-500 text-primary-600 dark:text-primary-400 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Email
+        </a>
+        <a href="{{ url_for('settings.branches') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Branches
+        </a>
+        <a href="{{ url_for('users.index') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Users
+        </a>
+    </nav>
+</div>
+
+<!-- Status Banner -->
+{% if not email_settings.is_configured %}
+<div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+    <div class="flex items-center">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Email Not Configured</h3>
+            <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                Configure your SMTP settings below to enable email notifications. In development mode, emails will be printed to the console.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+    <div class="flex items-center">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-green-800 dark:text-green-200">Email Configured</h3>
+            <p class="mt-1 text-sm text-green-700 dark:text-green-300">
+                Your email settings are configured. You can send a test email to verify the configuration.
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<form method="POST" class="space-y-6">
+    
+    <!-- SMTP Configuration -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">SMTP Configuration</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Connect to your email provider's SMTP server</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="smtp_host" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Host</label>
+                    <input type="text" name="smtp_host" id="smtp_host" value="{{ email_settings.smtp_host or '' }}" placeholder="smtp.gmail.com"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">e.g., smtp.gmail.com, smtp.office365.com</p>
+                </div>
+                <div>
+                    <label for="smtp_port" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Port</label>
+                    <input type="number" name="smtp_port" id="smtp_port" value="{{ email_settings.smtp_port or 587 }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Usually 587 for TLS or 465 for SSL</p>
+                </div>
+                <div>
+                    <label for="smtp_user" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Username</label>
+                    <input type="text" name="smtp_user" id="smtp_user" value="{{ email_settings.smtp_user or '' }}" placeholder="your-email@gmail.com"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Usually your email address</p>
+                </div>
+                <div>
+                    <label for="smtp_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Password</label>
+                    <input type="password" name="smtp_password" id="smtp_password" placeholder="••••••••"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">For Gmail, use an App Password</p>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="smtp_use_tls" id="smtp_use_tls" {% if email_settings.smtp_use_tls != False %}checked{% endif %}
+                               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="smtp_use_tls" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                            Use TLS (StartTLS)
+                        </label>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Enable for port 587, disable for SSL port 465</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sender Information -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Sender Information</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Customize how your emails appear to recipients</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="email_from_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">From Name</label>
+                    <input type="text" name="email_from_name" id="email_from_name" value="{{ email_settings.email_from_name or business.name }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">The name that appears as the sender</p>
+                </div>
+                <div>
+                    <label for="email_from_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">From Address</label>
+                    <input type="email" name="email_from_address" id="email_from_address" value="{{ email_settings.email_from_address or '' }}" placeholder="noreply@yourcompany.com"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Defaults to SMTP username if not specified</p>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="email_enabled" id="email_enabled" {% if email_settings.email_enabled != False %}checked{% endif %}
+                               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="email_enabled" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                            Enable Email Notifications
+                        </label>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">When disabled, no emails will be sent even if configured</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex justify-between space-x-3">
+        <div>
+            {% if email_settings.is_configured %}
+            <button type="button" id="testEmailBtn" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Send Test Email
+            </button>
+            {% endif %}
+        </div>
+        <div class="flex space-x-3">
+            <a href="{{ url_for('settings.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+                Save Settings
+            </button>
+        </div>
+    </div>
+    
+</form>
+
+<!-- Test Email Modal -->
+<div id="testEmailModal" class="hidden fixed z-50 inset-0 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                            Sending Test Email
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400" id="modal-message">
+                                Sending a test email to your email address...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="closeModalBtn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const testEmailBtn = document.getElementById('testEmailBtn');
+    const testEmailModal = document.getElementById('testEmailModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalMessage = document.getElementById('modal-message');
+    const modalTitle = document.getElementById('modal-title');
+    
+    if (testEmailBtn) {
+        testEmailBtn.addEventListener('click', function() {
+            // Show modal
+            testEmailModal.classList.remove('hidden');
+            modalTitle.textContent = 'Sending Test Email';
+            modalMessage.textContent = 'Sending a test email to your email address...';
+            
+            // Send test email
+            fetch('{{ url_for("settings.test_email") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    modalTitle.textContent = 'Success!';
+                    modalMessage.textContent = data.message;
+                } else {
+                    modalTitle.textContent = 'Error';
+                    modalMessage.textContent = data.detail || data.message || 'Failed to send test email';
+                }
+            })
+            .catch(error => {
+                modalTitle.textContent = 'Error';
+                modalMessage.textContent = 'An error occurred while sending the test email.';
+            });
+        });
+    }
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            testEmailModal.classList.add('hidden');
+        });
+    }
+    
+    // Close modal on outside click
+    testEmailModal?.addEventListener('click', function(e) {
+        if (e.target === testEmailModal) {
+            testEmailModal.classList.add('hidden');
+        }
+    });
+});
+</script>
+
+{% endblock %}

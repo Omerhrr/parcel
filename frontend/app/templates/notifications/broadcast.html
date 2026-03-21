@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Broadcast Notification - ParcelFlow{% endblock %}
+
+{% block page_title %}Broadcast Notification{% endblock %}
+
+{% block content %}
+
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Send a notification to all users in the system
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{{ url_for('notifications.admin_list') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Info Banner -->
+<div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">Broadcast Notification</h3>
+            <div class="mt-1 text-sm text-blue-700 dark:text-blue-400">
+                <p>This notification will be sent to <span class="font-semibold">{{ total_users }}</span> user(s) in the system. Use broadcasts for important announcements, system updates, or company-wide notices.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="POST" class="space-y-6">
+    
+    <!-- Basic Information -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notification Content</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Compose your broadcast message</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Title <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="title" id="title" required
+                           maxlength="200"
+                           placeholder="e.g., System Maintenance Notice"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Keep it concise and attention-grabbing</p>
+                </div>
+                
+                <!-- Message -->
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Message <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="message" id="message" rows="5" required
+                              maxlength="1000"
+                              placeholder="Enter your broadcast message..."
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
+                    <div class="mt-1 flex justify-between">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Detailed message content</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500"><span id="char-count">0</span>/1000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Classification -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Classification</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Categorize and prioritize your broadcast</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Notification Type -->
+                <div>
+                    <label for="notification_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Type <span class="text-red-500">*</span>
+                    </label>
+                    <select name="notification_type" id="notification_type" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Select type...</option>
+                        <option value="system">System Notification</option>
+                        <option value="order_new">New Order Alert</option>
+                        <option value="low_stock">Low Stock Alert</option>
+                        <option value="payment_received">Payment Received</option>
+                        <option value="waybill_created">Waybill Created</option>
+                        <option value="waybill_dispatched">Waybill Dispatched</option>
+                        <option value="waybill_delivered">Waybill Delivered</option>
+                        <option value="pickup_assigned">Pickup Assigned</option>
+                        <option value="delivery_assigned">Delivery Assigned</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Determines the icon and visual style</p>
+                </div>
+                
+                <!-- Priority -->
+                <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Priority <span class="text-red-500">*</span>
+                    </label>
+                    <select name="priority" id="priority" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Select priority...</option>
+                        <option value="low">🟢 Low - Informational</option>
+                        <option value="normal" selected>🔵 Normal - Standard</option>
+                        <option value="high">🟠 High - Important</option>
+                        <option value="urgent">🔴 Urgent - Critical</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Higher priority shows the notification more prominently</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Options -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Additional Options</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure optional behavior</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Action URL -->
+                <div class="md:col-span-2">
+                    <label for="action_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Action URL (Optional)
+                    </label>
+                    <div class="mt-1 flex rounded-lg shadow-sm">
+                        <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 sm:text-sm">
+                            {{ request.host_url }}
+                        </span>
+                        <input type="text" name="action_url" id="action_url"
+                               placeholder="e.g., announcements/march-update"
+                               class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-r-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Users will be redirected to this URL when they click the notification</p>
+                </div>
+                
+                <!-- Expires In -->
+                <div>
+                    <label for="expires_in_hours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Expires In (Hours)
+                    </label>
+                    <input type="number" name="expires_in_hours" id="expires_in_hours"
+                           value="72" min="1" max="720"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Notification will be automatically removed after this time (default: 72 hours)</p>
+                </div>
+                
+                <!-- Preview -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Preview
+                    </label>
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div class="flex items-start space-x-3">
+                            <div id="preview-icon" class="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p id="preview-title" class="text-sm font-medium text-gray-900 dark:text-white">Notification Title</p>
+                                <p id="preview-message" class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-0.5">Your message preview will appear here...</p>
+                                <div class="flex items-center mt-1 space-x-2">
+                                    <span id="preview-priority" class="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">Normal</span>
+                                    <span class="text-xs text-gray-400 dark:text-gray-500">Just now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation -->
+    <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Please confirm</h3>
+                <div class="mt-1 text-sm text-yellow-700 dark:text-yellow-400">
+                    <p>You are about to send a broadcast notification to <span class="font-semibold">{{ total_users }}</span> user(s). This action cannot be undone.</p>
+                </div>
+                <div class="mt-3">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="confirm_broadcast" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-yellow-800 dark:text-yellow-300">I understand and want to proceed</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex items-center justify-end space-x-3">
+        <a href="{{ url_for('notifications.admin_list') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+        </a>
+        <button type="submit" id="submit-btn" disabled
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
+            Send Broadcast
+        </button>
+    </div>
+    
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Character counter for message
+const messageInput = document.getElementById('message');
+const charCount = document.getElementById('char-count');
+
+messageInput.addEventListener('input', function() {
+    charCount.textContent = this.value.length;
+    updatePreview();
+});
+
+// Title preview
+const titleInput = document.getElementById('title');
+titleInput.addEventListener('input', updatePreview);
+
+// Update preview function
+function updatePreview() {
+    const previewTitle = document.getElementById('preview-title');
+    const previewMessage = document.getElementById('preview-message');
+    
+    previewTitle.textContent = titleInput.value || 'Notification Title';
+    previewMessage.textContent = messageInput.value || 'Your message preview will appear here...';
+}
+
+// Priority preview
+const prioritySelect = document.getElementById('priority');
+const previewPriority = document.getElementById('preview-priority');
+
+prioritySelect.addEventListener('change', function() {
+    const priorityConfig = {
+        'low': { label: 'Low', classes: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+        'normal': { label: 'Normal', classes: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' },
+        'high': { label: 'High', classes: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' },
+        'urgent': { label: 'Urgent', classes: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' }
+    };
+    
+    const config = priorityConfig[this.value] || priorityConfig['normal'];
+    previewPriority.textContent = config.label;
+    previewPriority.className = 'text-xs px-1.5 py-0.5 rounded ' + config.classes;
+});
+
+// Type icon preview
+const typeSelect = document.getElementById('notification_type');
+const previewIcon = document.getElementById('preview-icon');
+
+typeSelect.addEventListener('change', function() {
+    const typeConfig = {
+        'system': { classes: 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400' },
+        'waybill_delivered': { classes: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
+        'payment_received': { classes: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
+        'low_stock': { classes: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' },
+        'delivery_assigned': { classes: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+        'pickup_assigned': { classes: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+        'waybill_created': { classes: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
+        'waybill_dispatched': { classes: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
+        'order_new': { classes: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' }
+    };
+    
+    const config = typeConfig[this.value] || typeConfig['system'];
+    previewIcon.className = 'w-8 h-8 rounded-full flex items-center justify-center ' + config.classes;
+});
+
+// Enable submit button only when confirmed
+const confirmCheckbox = document.getElementById('confirm_broadcast');
+const submitBtn = document.getElementById('submit-btn');
+
+confirmCheckbox.addEventListener('change', function() {
+    submitBtn.disabled = !this.checked;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Import - ParcelFlow{% endblock %}
+
+{% block page_title %}Bulk Import{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Import data in bulk via CSV or JSON files</p>
+    </div>
+</div>
+
+<!-- Import Options -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Waybills Import -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="p-6">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Import Waybills</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Import multiple waybills from CSV or JSON files. Include sender, receiver, and item details.
+            </p>
+            <a href="{{ url_for('bulk.import_waybills') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors">
+                Import Waybills
+                <svg class="ml-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Orders Import -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="p-6">
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Import Orders</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Import customer orders with delivery details. Supports CSV and JSON formats.
+            </p>
+            <a href="{{ url_for('bulk.import_orders') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors">
+                Import Orders
+                <svg class="ml-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Agents Import -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="p-6">
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Import Agents</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Add multiple delivery agents at once. Include contact info and vehicle details.
+            </p>
+            <a href="{{ url_for('bulk.import_agents') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors">
+                Import Agents
+                <svg class="ml-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Instructions -->
+<div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+    <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">File Format Guidelines</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">CSV Format</h4>
+                <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                    <li>• First row must contain column headers</li>
+                    <li>• Use comma (,) as delimiter</li>
+                    <li>• Text fields with commas must be quoted</li>
+                    <li>• UTF-8 encoding recommended</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">JSON Format</h4>
+                <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                    <li>• Array of objects format</li>
+                    <li>• Each object represents one record</li>
+                    <li>• Field names must match exactly</li>
+                    <li>• Nested objects for items array</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                <strong>Maximum:</strong> 100 records per import. For larger imports, please contact support.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

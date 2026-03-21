@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}{% if notification %}Edit Notification{% else %}Create Notification{% endif %} - ParcelFlow{% endblock %}
+
+{% block page_title %}{% if notification %}Edit Notification{% else %}Create Notification{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {% if notification %}Update notification details{% else %}Create a new notification for users{% endif %}
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{{ url_for('notifications.admin_list') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to List
+        </a>
+    </div>
+</div>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> class="space-y-6">
+    
+    <!-- Basic Information -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notification Details</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure the notification content and visibility</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Title <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="title" id="title" required
+                           value="{{ notification.title if notification else '' }}"
+                           maxlength="200"
+                           placeholder="e.g., New Order Received"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">A brief, descriptive title for the notification</p>
+                </div>
+                
+                <!-- Message -->
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Message <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="message" id="message" rows="4" required
+                              maxlength="1000"
+                              placeholder="Enter the notification message..."
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ notification.message if notification else '' }}</textarea>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Detailed message content for the notification</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Classification -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Classification</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Set the type and priority of this notification</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Notification Type -->
+                <div>
+                    <label for="notification_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Type <span class="text-red-500">*</span>
+                    </label>
+                    <select name="notification_type" id="notification_type" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Select type...</option>
+                        <optgroup label="Waybill">
+                            <option value="waybill_created" {% if notification and notification.notification_type == 'waybill_created' %}selected{% endif %}>Waybill Created</option>
+                            <option value="waybill_dispatched" {% if notification and notification.notification_type == 'waybill_dispatched' %}selected{% endif %}>Waybill Dispatched</option>
+                            <option value="waybill_delivered" {% if notification and notification.notification_type == 'waybill_delivered' %}selected{% endif %}>Waybill Delivered</option>
+                        </optgroup>
+                        <optgroup label="Assignments">
+                            <option value="pickup_assigned" {% if notification and notification.notification_type == 'pickup_assigned' %}selected{% endif %}>Pickup Assigned</option>
+                            <option value="delivery_assigned" {% if notification and notification.notification_type == 'delivery_assigned' %}selected{% endif %}>Delivery Assigned</option>
+                        </optgroup>
+                        <optgroup label="Orders & Payments">
+                            <option value="order_new" {% if notification and notification.notification_type == 'order_new' %}selected{% endif %}>New Order</option>
+                            <option value="payment_received" {% if notification and notification.notification_type == 'payment_received' %}selected{% endif %}>Payment Received</option>
+                        </optgroup>
+                        <optgroup label="System">
+                            <option value="low_stock" {% if notification and notification.notification_type == 'low_stock' %}selected{% endif %}>Low Stock Alert</option>
+                            <option value="system" {% if notification and notification.notification_type == 'system' %}selected{% endif %}>System Notification</option>
+                        </optgroup>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Determines the icon and color scheme</p>
+                </div>
+                
+                <!-- Priority -->
+                <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Priority <span class="text-red-500">*</span>
+                    </label>
+                    <select name="priority" id="priority" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Select priority...</option>
+                        <option value="low" {% if notification and notification.priority == 'low' %}selected{% endif %}>Low - Informational</option>
+                        <option value="normal" {% if notification and notification.priority == 'normal' %}selected{% endif %}>Normal - Standard</option>
+                        <option value="high" {% if notification and notification.priority == 'high' %}selected{% endif %}>High - Important</option>
+                        <option value="urgent" {% if notification and notification.priority == 'urgent' %}selected{% endif %}>Urgent - Critical</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Higher priority notifications appear first</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Target Audience -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Target Audience</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose who should receive this notification</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 gap-6">
+                <!-- User Selection -->
+                <div>
+                    <label for="user_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Target User
+                    </label>
+                    <select name="user_id" id="user_id"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">All Users (Broadcast)</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if notification and notification.user_id == user.id %}selected{% endif %}>
+                            {{ user.name }} ({{ user.email }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave empty to send to all users, or select a specific user</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Optional Settings -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Optional Settings</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Link this notification to a specific record or action</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Action URL -->
+                <div class="md:col-span-2">
+                    <label for="action_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Action URL
+                    </label>
+                    <input type="url" name="action_url" id="action_url"
+                           value="{{ notification.action_url if notification else '' }}"
+                           placeholder="e.g., /waybills/WB-123"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional URL to redirect when notification is clicked</p>
+                </div>
+                
+                <!-- Related Entity Type -->
+                <div>
+                    <label for="related_entity_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Related Entity Type
+                    </label>
+                    <select name="related_entity_type" id="related_entity_type"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">None</option>
+                        <option value="waybill" {% if notification and notification.related_entity_type == 'waybill' %}selected{% endif %}>Waybill</option>
+                        <option value="order" {% if notification and notification.related_entity_type == 'order' %}selected{% endif %}>Order</option>
+                        <option value="pickup" {% if notification and notification.related_entity_type == 'pickup' %}selected{% endif %}>Pickup</option>
+                        <option value="delivery" {% if notification and notification.related_entity_type == 'delivery' %}selected{% endif %}>Delivery</option>
+                        <option value="user" {% if notification and notification.related_entity_type == 'user' %}selected{% endif %}>User</option>
+                        <option value="product" {% if notification and notification.related_entity_type == 'product' %}selected{% endif %}>Product</option>
+                        <option value="vendor" {% if notification and notification.related_entity_type == 'vendor' %}selected{% endif %}>Vendor</option>
+                        <option value="agent" {% if notification and notification.related_entity_type == 'agent' %}selected{% endif %}>Agent</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Link to a specific type of record</p>
+                </div>
+                
+                <!-- Related Entity ID -->
+                <div>
+                    <label for="related_entity_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Related Entity ID
+                    </label>
+                    <input type="text" name="related_entity_id" id="related_entity_id"
+                           value="{{ notification.related_entity_id if notification else '' }}"
+                           placeholder="e.g., 123 or WB-123"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">The ID of the related record</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex items-center justify-end space-x-3">
+        <a href="{{ url_for('notifications.admin_list') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+        </a>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            {% if notification %}Update Notification{% else %}Send Notification{% endif %}
+        </button>
+    </div>
+    
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-generate action URL based on entity selection
+document.getElementById('related_entity_type').addEventListener('change', function() {
+    const entityType = this.value;
+    const entityId = document.getElementById('related_entity_id').value;
+    const actionUrlInput = document.getElementById('action_url');
+    
+    if (entityType && entityId) {
+        const urlMap = {
+            'waybill': '/waybills/',
+            'order': '/orders/',
+            'pickup': '/pickups/',
+            'delivery': '/deliveries/',
+            'user': '/users/',
+            'product': '/inventory/',
+            'vendor': '/vendors/',
+            'agent': '/agents/'
+        };
+        
+        if (urlMap[entityType]) {
+            actionUrlInput.value = urlMap[entityType] + entityId;
+        }
+    }
+});
+
+document.getElementById('related_entity_id').addEventListener('input', function() {
+    const entityType = document.getElementById('related_entity_type').value;
+    const entityId = this.value;
+    const actionUrlInput = document.getElementById('action_url');
+    
+    if (entityType && entityId) {
+        const urlMap = {
+            'waybill': '/waybills/',
+            'order': '/orders/',
+            'pickup': '/pickups/',
+            'delivery': '/deliveries/',
+            'user': '/users/',
+            'product': '/inventory/',
+            'vendor': '/vendors/',
+            'agent': '/agents/'
+        };
+        
+        if (urlMap[entityType]) {
+            actionUrlInput.value = urlMap[entityType] + entityId;
+        }
+    }
+});
+</script>
+{% endblock %}
