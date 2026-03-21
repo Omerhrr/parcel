@@ -8,7 +8,7 @@ from typing import Optional
 
 from app.database import get_db
 from app.models.user import User
-from app.models.product import Product
+from app.models.product import Product, ProductPrice
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 from app.utils.auth import get_current_user
 
@@ -48,7 +48,8 @@ async def list_products(
         name=p.name, sku=p.sku, barcode=p.barcode, description=p.description,
         category=p.category, weight=p.weight, length=p.length, width=p.width,
         height=p.height, cost_price=p.cost_price, selling_price=p.selling_price,
-        is_active=p.is_active, image_url=p.image_url,
+        pricing_type=p.pricing_type or "fixed", is_active=p.is_active, image_url=p.image_url,
+        pricing_matrix=[],
         created_at=p.created_at, updated_at=p.updated_at
     ) for p in products]
     
@@ -82,12 +83,53 @@ async def create_product(
         height=request.height,
         cost_price=request.cost_price,
         selling_price=request.selling_price,
+        pricing_type=request.pricing_type or "fixed",
         image_url=request.image_url
     )
     
     db.add(product)
+    db.flush()  # Get the product ID
+    
+    # Create pricing tiers if provided
+    if request.price_tiers:
+        for tier_data in request.price_tiers:
+            tier = ProductPrice(
+                product_id=product.id,
+                min_quantity=tier_data.min_quantity,
+                max_quantity=tier_data.max_quantity,
+                price=tier_data.price,
+                total_price=tier_data.total_price,
+                is_buy_x_get_y=1 if tier_data.is_buy_x_get_y else 0,
+                buy_quantity=tier_data.buy_quantity,
+                get_quantity=tier_data.get_quantity,
+                label=tier_data.label,
+                priority=tier_data.priority
+            )
+            db.add(tier)
+    
     db.commit()
     db.refresh(product)
+    
+    # Build pricing matrix for response
+    pricing_matrix = [
+        {
+            "id": t.id,
+            "product_id": t.product_id,
+            "min_quantity": t.min_quantity,
+            "max_quantity": t.max_quantity,
+            "price": t.price,
+            "total_price": t.total_price,
+            "is_buy_x_get_y": t.is_buy_x_get_y,
+            "buy_quantity": t.buy_quantity,
+            "get_quantity": t.get_quantity,
+            "label": t.label,
+            "priority": t.priority,
+            "is_active": t.is_active,
+            "created_at": t.created_at,
+            "updated_at": t.updated_at
+        }
+        for t in product.pricing_matrix
+    ] if product.pricing_matrix else []
     
     return ProductResponse(
         id=product.id, business_id=product.business_id, vendor_id=product.vendor_id,
@@ -95,9 +137,10 @@ async def create_product(
         description=product.description, category=product.category,
         weight=product.weight, length=product.length, width=product.width,
         height=product.height, cost_price=product.cost_price,
-        selling_price=product.selling_price, is_active=product.is_active,
-        image_url=product.image_url, created_at=product.created_at,
-        updated_at=product.updated_at
+        selling_price=product.selling_price, pricing_type=product.pricing_type or "fixed",
+        is_active=product.is_active, image_url=product.image_url,
+        pricing_matrix=pricing_matrix,
+        created_at=product.created_at, updated_at=product.updated_at
     )
 
 
@@ -116,15 +159,37 @@ async def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
+    # Build pricing matrix for response
+    pricing_matrix = [
+        {
+            "id": t.id,
+            "product_id": t.product_id,
+            "min_quantity": t.min_quantity,
+            "max_quantity": t.max_quantity,
+            "price": t.price,
+            "total_price": t.total_price,
+            "is_buy_x_get_y": t.is_buy_x_get_y,
+            "buy_quantity": t.buy_quantity,
+            "get_quantity": t.get_quantity,
+            "label": t.label,
+            "priority": t.priority,
+            "is_active": t.is_active,
+            "created_at": t.created_at,
+            "updated_at": t.updated_at
+        }
+        for t in product.pricing_matrix
+    ] if product.pricing_matrix else []
+    
     return ProductResponse(
         id=product.id, business_id=product.business_id, vendor_id=product.vendor_id,
         name=product.name, sku=product.sku, barcode=product.barcode,
         description=product.description, category=product.category,
         weight=product.weight, length=product.length, width=product.width,
         height=product.height, cost_price=product.cost_price,
-        selling_price=product.selling_price, is_active=product.is_active,
-        image_url=product.image_url, created_at=product.created_at,
-        updated_at=product.updated_at
+        selling_price=product.selling_price, pricing_type=product.pricing_type or "fixed",
+        is_active=product.is_active, image_url=product.image_url,
+        pricing_matrix=pricing_matrix,
+        created_at=product.created_at, updated_at=product.updated_at
     )
 
 
@@ -147,12 +212,82 @@ async def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    update_data = request.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(product, field, value)
+    # Update basic fields
+    if request.vendor_id is not None:
+        product.vendor_id = request.vendor_id
+    if request.name is not None:
+        product.name = request.name
+    if request.sku is not None:
+        product.sku = request.sku
+    if request.barcode is not None:
+        product.barcode = request.barcode
+    if request.description is not None:
+        product.description = request.description
+    if request.category is not None:
+        product.category = request.category
+    if request.weight is not None:
+        product.weight = request.weight
+    if request.length is not None:
+        product.length = request.length
+    if request.width is not None:
+        product.width = request.width
+    if request.height is not None:
+        product.height = request.height
+    if request.cost_price is not None:
+        product.cost_price = request.cost_price
+    if request.selling_price is not None:
+        product.selling_price = request.selling_price
+    if request.pricing_type is not None:
+        product.pricing_type = request.pricing_type
+    if request.image_url is not None:
+        product.image_url = request.image_url
+    if request.is_active is not None:
+        product.is_active = request.is_active
+    
+    # Update pricing tiers if provided
+    if request.price_tiers is not None:
+        # Remove existing tiers
+        db.query(ProductPrice).filter(ProductPrice.product_id == product_id).delete()
+        
+        # Add new tiers
+        for tier_data in request.price_tiers:
+            tier = ProductPrice(
+                product_id=product.id,
+                min_quantity=tier_data.min_quantity,
+                max_quantity=tier_data.max_quantity,
+                price=tier_data.price,
+                total_price=tier_data.total_price,
+                is_buy_x_get_y=1 if tier_data.is_buy_x_get_y else 0,
+                buy_quantity=tier_data.buy_quantity,
+                get_quantity=tier_data.get_quantity,
+                label=tier_data.label,
+                priority=tier_data.priority
+            )
+            db.add(tier)
 
     db.commit()
     db.refresh(product)
+
+    # Build pricing matrix for response
+    pricing_matrix = [
+        {
+            "id": t.id,
+            "product_id": t.product_id,
+            "min_quantity": t.min_quantity,
+            "max_quantity": t.max_quantity,
+            "price": t.price,
+            "total_price": t.total_price,
+            "is_buy_x_get_y": t.is_buy_x_get_y,
+            "buy_quantity": t.buy_quantity,
+            "get_quantity": t.get_quantity,
+            "label": t.label,
+            "priority": t.priority,
+            "is_active": t.is_active,
+            "created_at": t.created_at,
+            "updated_at": t.updated_at
+        }
+        for t in product.pricing_matrix
+    ] if product.pricing_matrix else []
 
     return ProductResponse(
         id=product.id, business_id=product.business_id, vendor_id=product.vendor_id,
@@ -160,9 +295,10 @@ async def update_product(
         description=product.description, category=product.category,
         weight=product.weight, length=product.length, width=product.width,
         height=product.height, cost_price=product.cost_price,
-        selling_price=product.selling_price, is_active=product.is_active,
-        image_url=product.image_url, created_at=product.created_at,
-        updated_at=product.updated_at
+        selling_price=product.selling_price, pricing_type=product.pricing_type or "fixed",
+        is_active=product.is_active, image_url=product.image_url,
+        pricing_matrix=pricing_matrix,
+        created_at=product.created_at, updated_at=product.updated_at
     )
 
 

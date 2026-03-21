@@ -80,6 +80,37 @@ def create_product():
             cost_price = request.form.get('cost_price_fixed')
             selling_price = request.form.get('selling_price_fixed')
         
+        # Build price tiers for matrix pricing
+        price_tiers = []
+        if pricing_type == 'matrix':
+            # Parse price tiers from form
+            tier_indices = set()
+            for key in request.form.keys():
+                if key.startswith('price_tiers['):
+                    # Extract index from key like "price_tiers[0][min_quantity]"
+                    parts = key.split('[')
+                    if len(parts) >= 2:
+                        try:
+                            idx = int(parts[1].rstrip(']'))
+                            tier_indices.add(idx)
+                        except ValueError:
+                            pass
+            
+            for idx in sorted(tier_indices):
+                min_qty = request.form.get(f'price_tiers[{idx}][min_quantity]')
+                if min_qty:
+                    tier = {
+                        'min_quantity': int(min_qty),
+                        'max_quantity': int(request.form.get(f'price_tiers[{idx}][max_quantity]')) if request.form.get(f'price_tiers[{idx}][max_quantity]') else None,
+                        'price': float(request.form.get(f'price_tiers[{idx}][price]') or 0),
+                        'total_price': float(request.form.get(f'price_tiers[{idx}][total_price]')) if request.form.get(f'price_tiers[{idx}][total_price]') else None,
+                        'label': request.form.get(f'price_tiers[{idx}][label]') or None,
+                        'is_buy_x_get_y': request.form.get(f'price_tiers[{idx}][is_buy_x_get_y]') == '1',
+                        'buy_quantity': int(request.form.get(f'price_tiers[{idx}][buy_quantity]')) if request.form.get(f'price_tiers[{idx}][buy_quantity]') else None,
+                        'get_quantity': int(request.form.get(f'price_tiers[{idx}][get_quantity]')) if request.form.get(f'price_tiers[{idx}][get_quantity]') else None,
+                    }
+                    price_tiers.append(tier)
+        
         data = {
             'name': request.form.get('name'),
             'sku': request.form.get('sku'),
@@ -90,7 +121,8 @@ def create_product():
             'weight': float(request.form.get('weight')) if request.form.get('weight') else None,
             'cost_price': float(cost_price) if cost_price else 0,
             'selling_price': float(selling_price) if selling_price else 0,
-            'pricing_type': pricing_type
+            'pricing_type': pricing_type,
+            'price_tiers': price_tiers if price_tiers else None
         }
         
         response = api_post('/products', data)
@@ -170,6 +202,37 @@ def edit_product(product_id):
             cost_price = request.form.get('cost_price_fixed')
             selling_price = request.form.get('selling_price_fixed')
         
+        # Build price tiers for matrix pricing
+        price_tiers = []
+        if pricing_type == 'matrix':
+            # Parse price tiers from form
+            tier_indices = set()
+            for key in request.form.keys():
+                if key.startswith('price_tiers['):
+                    # Extract index from key like "price_tiers[0][min_quantity]"
+                    parts = key.split('[')
+                    if len(parts) >= 2:
+                        try:
+                            idx = int(parts[1].rstrip(']'))
+                            tier_indices.add(idx)
+                        except ValueError:
+                            pass
+            
+            for idx in sorted(tier_indices):
+                min_qty = request.form.get(f'price_tiers[{idx}][min_quantity]')
+                if min_qty:
+                    tier = {
+                        'min_quantity': int(min_qty),
+                        'max_quantity': int(request.form.get(f'price_tiers[{idx}][max_quantity]')) if request.form.get(f'price_tiers[{idx}][max_quantity]') else None,
+                        'price': float(request.form.get(f'price_tiers[{idx}][price]') or 0),
+                        'total_price': float(request.form.get(f'price_tiers[{idx}][total_price]')) if request.form.get(f'price_tiers[{idx}][total_price]') else None,
+                        'label': request.form.get(f'price_tiers[{idx}][label]') or None,
+                        'is_buy_x_get_y': request.form.get(f'price_tiers[{idx}][is_buy_x_get_y]') == '1',
+                        'buy_quantity': int(request.form.get(f'price_tiers[{idx}][buy_quantity]')) if request.form.get(f'price_tiers[{idx}][buy_quantity]') else None,
+                        'get_quantity': int(request.form.get(f'price_tiers[{idx}][get_quantity]')) if request.form.get(f'price_tiers[{idx}][get_quantity]') else None,
+                    }
+                    price_tiers.append(tier)
+        
         data = {
             'name': request.form.get('name'),
             'sku': request.form.get('sku'),
@@ -181,6 +244,7 @@ def edit_product(product_id):
             'cost_price': float(cost_price) if cost_price else 0,
             'selling_price': float(selling_price) if selling_price else 0,
             'pricing_type': pricing_type,
+            'price_tiers': price_tiers if price_tiers else None,
             'is_active': request.form.get('is_active') == 'on'
         }
         
