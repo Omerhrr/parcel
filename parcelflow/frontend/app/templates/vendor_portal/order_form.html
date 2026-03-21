@@ -77,21 +77,18 @@
             <div id="itemsContainer">
                 <!-- Item 0 -->
                 <div class="item-row mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30" data-index="0">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product</label>
-                            <select name="product_id_0" id="product_id_0" onchange="updateProduct(0)"
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product *</label>
+                            <select name="product_id_0" id="product_id_0" onchange="updateProduct(0)" required
                                     class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
-                                <option value="">Select product or enter manually</option>
+                                <option value="">Select a product</option>
                                 {% for p in products %}
-                                <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} (₦{{ "%.2f" % p.selling_price }})</option>
+                                <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} - ₦{{ "%.2f" % p.selling_price }}</option>
                                 {% endfor %}
                             </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Name *</label>
-                            <input type="text" name="product_name_0" id="product_name_0" required
-                                   class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                            <input type="hidden" name="product_name_0" id="product_name_0">
+                            <input type="hidden" name="unit_price_0" id="unit_price_0">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity *</label>
@@ -99,9 +96,8 @@
                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (₦) *</label>
-                            <input type="number" name="unit_price_0" id="unit_price_0" min="0" step="0.01" value="0" required onchange="calculateTotal()"
-                                   class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price (₦)</label>
+                            <div class="px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-lg text-gray-900 dark:text-white font-medium" id="price_display_0">0.00</div>
                         </div>
                     </div>
                 </div>
@@ -167,21 +163,18 @@
         const container = document.getElementById('itemsContainer');
         const html = `
             <div class="item-row mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30" data-index="${itemIndex}">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product</label>
-                        <select name="product_id_${itemIndex}" id="product_id_${itemIndex}" onchange="updateProduct(${itemIndex})"
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product *</label>
+                        <select name="product_id_${itemIndex}" id="product_id_${itemIndex}" onchange="updateProduct(${itemIndex})" required
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                            <option value="">Select product or enter manually</option>
+                            <option value="">Select a product</option>
                             {% for p in products %}
-                            <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} (₦{{ "%.2f" % p.selling_price }})</option>
+                            <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} - ₦{{ "%.2f" % p.selling_price }}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Name *</label>
-                        <input type="text" name="product_name_${itemIndex}" id="product_name_${itemIndex}" required
-                               class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <input type="hidden" name="product_name_${itemIndex}" id="product_name_${itemIndex}">
+                        <input type="hidden" name="unit_price_${itemIndex}" id="unit_price_${itemIndex}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity *</label>
@@ -189,10 +182,9 @@
                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (₦) *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">&nbsp;</label>
                         <div class="flex">
-                            <input type="number" name="unit_price_${itemIndex}" id="unit_price_${itemIndex}" min="0" step="0.01" value="0" required onchange="calculateTotal()"
-                                   class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-l-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <div class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-l-lg text-gray-900 dark:text-white font-medium" id="price_display_${itemIndex}">0.00</div>
                             <button type="button" onclick="removeItem(${itemIndex})" class="px-3 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-r-lg transition-colors">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -219,11 +211,17 @@
         const option = select.options[select.selectedIndex];
         const nameInput = document.getElementById(`product_name_${index}`);
         const priceInput = document.getElementById(`unit_price_${index}`);
+        const priceDisplay = document.getElementById(`price_display_${index}`);
         
         if (option.value) {
             nameInput.value = option.dataset.name || '';
             priceInput.value = option.dataset.price || 0;
+            priceDisplay.textContent = parseFloat(option.dataset.price || 0).toFixed(2);
             calculateTotal();
+        } else {
+            nameInput.value = '';
+            priceInput.value = 0;
+            priceDisplay.textContent = '0.00';
         }
     }
     
