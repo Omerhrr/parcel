@@ -254,12 +254,12 @@ async def create_vendor_order(
             'notes': item_req.notes
         })
 
-    # Calculate total
-    total_amount = subtotal + request.delivery_fee + request.tax - request.discount
+    # Calculate total (delivery fee is deducted, not added)
+    total_amount = subtotal - request.delivery_fee + request.tax - request.discount
 
-    # Calculate vendor amount (after logistics fee)
+    # Calculate vendor amount (after delivery fee and logistics fee deductions)
     remittance_fee = request.remittance_fee or Decimal("0")
-    vendor_amount = subtotal - remittance_fee
+    vendor_amount = total_amount - remittance_fee
 
     order = Order(
         business_id=vendor.business_id,
