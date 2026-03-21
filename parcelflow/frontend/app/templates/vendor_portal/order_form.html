@@ -1,0 +1,248 @@
+{% extends "vendor_portal/base.html" %}
+
+{% block title %}Create Order{% endblock %}
+{% block page_title %}Create Order{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Create New Order</h2>
+        <p class="mt-1 text-gray-600 dark:text-gray-400">Add a new sales order for your customer</p>
+    </div>
+    <a href="{{ url_for('vendor_portal.orders') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> Back
+    </a>
+</div>
+
+<!-- Form -->
+<form method="POST" id="orderForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="item_count" id="itemCount" value="1">
+    
+    <!-- Customer Information -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <i class="fas fa-user mr-2 text-primary-500"></i> Customer Information
+            </h3>
+        </div>
+        <div class="p-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="customer_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer Name *</label>
+                    <input type="text" name="customer_name" id="customer_name" required
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                </div>
+                <div>
+                    <label for="customer_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer Phone *</label>
+                    <input type="tel" name="customer_phone" id="customer_phone" required
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                </div>
+                <div>
+                    <label for="customer_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer Email</label>
+                    <input type="email" name="customer_email" id="customer_email"
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                </div>
+                <div>
+                    <label for="delivery_city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City</label>
+                    <input type="text" name="delivery_city" id="delivery_city"
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="delivery_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Address *</label>
+                    <textarea name="delivery_address" id="delivery_address" rows="2" required
+                              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="delivery_landmark" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Landmark</label>
+                    <input type="text" name="delivery_landmark" id="delivery_landmark" placeholder="Nearby landmark for easier location"
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <i class="fas fa-shopping-cart mr-2 text-primary-500"></i> Order Items
+            </h3>
+            <button type="button" onclick="addItem()" class="inline-flex items-center px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-plus mr-1"></i> Add Item
+            </button>
+        </div>
+        <div class="p-5">
+            <div id="itemsContainer">
+                <!-- Item 0 -->
+                <div class="item-row mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30" data-index="0">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product</label>
+                            <select name="product_id_0" id="product_id_0" onchange="updateProduct(0)"
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                                <option value="">Select product or enter manually</option>
+                                {% for p in products %}
+                                <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} (₦{{ "%.2f" % p.selling_price }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Name *</label>
+                            <input type="text" name="product_name_0" id="product_name_0" required
+                                   class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity *</label>
+                            <input type="number" name="quantity_0" id="quantity_0" min="1" value="1" required onchange="calculateTotal()"
+                                   class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (₦) *</label>
+                            <input type="number" name="unit_price_0" id="unit_price_0" min="0" step="0.01" value="0" required onchange="calculateTotal()"
+                                   class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing & Payment -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <i class="fas fa-calculator mr-2 text-primary-500"></i> Pricing & Payment
+            </h3>
+        </div>
+        <div class="p-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label for="delivery_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Fee (₦)</label>
+                    <input type="number" name="delivery_fee" id="delivery_fee" min="0" step="0.01" value="0" onchange="calculateTotal()"
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                </div>
+                <div>
+                    <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Method</label>
+                    <select name="payment_method" id="payment_method"
+                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                        <option value="cod">Cash on Delivery</option>
+                        <option value="prepaid">Prepaid</option>
+                        <option value="invoice">Invoice</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Amount</label>
+                    <div class="px-4 py-2.5 bg-primary-50 dark:bg-primary-900/30 rounded-lg text-lg font-bold text-primary-700 dark:text-primary-300">
+                        ₦<span id="totalAmount">0.00</span>
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
+                    <textarea name="notes" id="notes" rows="2"
+                              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+        <a href="{{ url_for('vendor_portal.orders') }}" class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-center">
+            Cancel
+        </a>
+        <button type="submit" class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+            <i class="fas fa-plus mr-2"></i> Create Order
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let itemIndex = 1;
+    
+    function addItem() {
+        const container = document.getElementById('itemsContainer');
+        const html = `
+            <div class="item-row mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30" data-index="${itemIndex}">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product</label>
+                        <select name="product_id_${itemIndex}" id="product_id_${itemIndex}" onchange="updateProduct(${itemIndex})"
+                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">Select product or enter manually</option>
+                            {% for p in products %}
+                            <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} (₦{{ "%.2f" % p.selling_price }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Name *</label>
+                        <input type="text" name="product_name_${itemIndex}" id="product_name_${itemIndex}" required
+                               class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity *</label>
+                        <input type="number" name="quantity_${itemIndex}" id="quantity_${itemIndex}" min="1" value="1" required onchange="calculateTotal()"
+                               class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (₦) *</label>
+                        <div class="flex">
+                            <input type="number" name="unit_price_${itemIndex}" id="unit_price_${itemIndex}" min="0" step="0.01" value="0" required onchange="calculateTotal()"
+                                   class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-l-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <button type="button" onclick="removeItem(${itemIndex})" class="px-3 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-r-lg transition-colors">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+        document.getElementById('itemCount').value = itemIndex + 1;
+        itemIndex++;
+    }
+    
+    function removeItem(index) {
+        const row = document.querySelector(`.item-row[data-index="${index}"]`);
+        if (row) {
+            row.remove();
+            calculateTotal();
+        }
+    }
+    
+    function updateProduct(index) {
+        const select = document.getElementById(`product_id_${index}`);
+        const option = select.options[select.selectedIndex];
+        const nameInput = document.getElementById(`product_name_${index}`);
+        const priceInput = document.getElementById(`unit_price_${index}`);
+        
+        if (option.value) {
+            nameInput.value = option.dataset.name || '';
+            priceInput.value = option.dataset.price || 0;
+            calculateTotal();
+        }
+    }
+    
+    function calculateTotal() {
+        let subtotal = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const index = row.dataset.index;
+            const qty = parseFloat(document.getElementById(`quantity_${index}`)?.value) || 0;
+            const price = parseFloat(document.getElementById(`unit_price_${index}`)?.value) || 0;
+            subtotal += qty * price;
+        });
+        
+        const deliveryFee = parseFloat(document.getElementById('delivery_fee')?.value) || 0;
+        const total = subtotal + deliveryFee;
+        
+        document.getElementById('totalAmount').textContent = total.toFixed(2);
+    }
+    
+    // Initial calculation
+    calculateTotal();
+</script>
+{% endblock %}

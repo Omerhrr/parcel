@@ -1,0 +1,85 @@
+{% extends "vendor_portal/base.html" %}
+
+{% block title %}Stock Requests{% endblock %}
+{% block page_title %}Stock Requests{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Stock Requests</h2>
+        <p class="mt-1 text-gray-600 dark:text-gray-400">Track your stock submission requests</p>
+    </div>
+    <a href="{{ url_for('vendor_portal.create_stock_request') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+        <i class="fas fa-plus mr-2"></i> New Stock Request
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
+    <div class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
+        <span class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">Filter:</span>
+        <a href="{{ url_for('vendor_portal.stock_requests') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if not status_filter %}bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">All</a>
+        <a href="{{ url_for('vendor_portal.stock_requests', status='pending') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if status_filter == 'pending' %}bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">Pending</a>
+        <a href="{{ url_for('vendor_portal.stock_requests', status='approved') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if status_filter == 'approved' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">Approved</a>
+        <a href="{{ url_for('vendor_portal.stock_requests', status='received') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if status_filter == 'received' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">Received</a>
+        <a href="{{ url_for('vendor_portal.stock_requests', status='rejected') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors {% if status_filter == 'rejected' %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">Rejected</a>
+    </div>
+</div>
+
+<!-- Stock Requests Table -->
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+        {% if stock_requests %}
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Request #</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Warehouse</th>
+                    <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Qty</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Expected</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Notes</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% for req in stock_requests %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-primary-600 dark:text-primary-400">{{ req.request_number }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 dark:text-white">{{ req.product_name_resolved or req.product_name }}</div>
+                        {% if req.product_sku %}
+                        <div class="text-xs text-gray-500 dark:text-gray-400">SKU: {{ req.product_sku }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ req.warehouse_name }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right font-medium">{{ req.quantity }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                            {% if req.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200
+                            {% elif req.status == 'approved' %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200
+                            {% elif req.status == 'received' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200
+                            {% elif req.status == 'rejected' %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200
+                            {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}">
+                            {{ req.status | title }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ req.expected_delivery_date or '-' }}</td>
+                    <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">{{ req.review_notes or req.vendor_notes or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="px-5 py-12 text-center">
+            <i class="fas fa-paper-plane text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
+            <p class="text-gray-500 dark:text-gray-400 mb-4">No stock requests yet.</p>
+            <a href="{{ url_for('vendor_portal.create_stock_request') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-plus mr-2"></i> Create Stock Request
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

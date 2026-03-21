@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Delivery - ParcelFlow{% endblock %}
+
+{% block page_title %}Confirm Delivery{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ url_for('logistics.list_deliveries') }}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Deliveries
+        </a>
+    </div>
+
+    <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> class="space-y-6">
+        
+        {% if waybill %}
+        <!-- Waybill Info (pre-filled) -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-400">Waybill: {{ waybill.waybill_number }}</h3>
+                    <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                        Receiver: {{ waybill.receiver_name }} | {{ waybill.receiver_address }}, {{ waybill.receiver_city }}
+                    </p>
+                </div>
+                <input type="hidden" name="waybill_id" value="{{ waybill.id }}">
+            </div>
+        </div>
+        {% else %}
+        <!-- Waybill Selection -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Select Waybill</h3>
+            </div>
+            <div class="p-6">
+                <label for="waybill_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Waybill ID *</label>
+                <input type="number" name="waybill_id" id="waybill_id" required
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                       placeholder="Enter waybill ID">
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Delivery Status -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Delivery Status</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Result *</label>
+                        <select name="status" id="status" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="delivered">Successfully Delivered</option>
+                            <option value="partial">Partial Delivery</option>
+                            <option value="returned">Returned</option>
+                            <option value="failed">Failed Delivery</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Receiver Information -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Receiver Information</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="receiver_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Receiver Name</label>
+                        <input type="text" name="receiver_name" id="receiver_name"
+                               value="{{ waybill.receiver_name if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                               placeholder="Person who received the package">
+                    </div>
+                    <div>
+                        <label for="receiver_relationship" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Relationship</label>
+                        <select name="receiver_relationship" id="receiver_relationship"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="">Select relationship</option>
+                            <option value="self">Self (Addressee)</option>
+                            <option value="family">Family Member</option>
+                            <option value="neighbor">Neighbor</option>
+                            <option value="security">Security Guard</option>
+                            <option value="colleague">Colleague</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="receiver_id_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ID Type</label>
+                        <select name="receiver_id_type" id="receiver_id_type"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="">Not collected</option>
+                            <option value="national_id">National ID</option>
+                            <option value="passport">Passport</option>
+                            <option value="drivers_license">Driver's License</option>
+                            <option value="voters_card">Voter's Card</option>
+                            <option value="nin">NIN</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="receiver_id_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ID Number</label>
+                        <input type="text" name="receiver_id_number" id="receiver_id_number"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                               placeholder="ID number">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Signature Capture Section -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Receiver Signature</h3>
+            </div>
+            <div class="p-6">
+                <!-- Instructions -->
+                <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="text-sm text-blue-700 dark:text-blue-300">
+                            <p class="font-medium mb-1">How to sign:</p>
+                            <ul class="list-disc list-inside space-y-0.5 text-blue-600 dark:text-blue-400">
+                                <li>Use your mouse or finger (touch devices) to sign below</li>
+                                <li>Sign within the designated area</li>
+                                <li>Click "Clear Signature" to start over if needed</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Signature Canvas -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Signature <span class="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span>
+                        </label>
+                        <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                            </svg>
+                            <span>Sign with mouse or touch</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Canvas Container -->
+                    <div class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900/50 hover:border-primary-400 dark:hover:border-primary-500 transition-colors">
+                        <canvas id="signature_canvas" 
+                                class="w-full cursor-crosshair touch-none" 
+                                style="height: 200px;"
+                                aria-label="Signature capture area">
+                        </canvas>
+                        <!-- Placeholder text when empty -->
+                        <div id="signature_placeholder" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <span class="text-gray-400 dark:text-gray-500 text-sm">Sign here</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button type="button" id="clear_signature" 
+                                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Clear Signature
+                            </button>
+                        </div>
+                        <div id="signature_status" class="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                            <span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 mr-1.5"></span>
+                            <span>No signature</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden field for SVG signature -->
+                <input type="hidden" name="receiver_signature_svg" id="receiver_signature_svg" value="">
+            </div>
+        </div>
+        
+        <!-- COD Collection -->
+        {% if waybill and waybill.cod_amount %}
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">COD Collection</h3>
+            </div>
+            <div class="p-6">
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-yellow-800 dark:text-yellow-400">
+                        <strong>COD Amount:</strong> {{ waybill.cod_amount|currency }}
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="cod_collected" id="cod_collected" 
+                               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="cod_collected" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                            COD Collected
+                        </label>
+                    </div>
+                    <div>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+                        <select name="payment_method" id="payment_method"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="cash">Cash</option>
+                            <option value="transfer">Bank Transfer</option>
+                            <option value="pos">POS/Card</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Delivery Notes -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Additional Notes</h3>
+            </div>
+            <div class="p-6">
+                <label for="delivery_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Notes</label>
+                <textarea name="delivery_notes" id="delivery_notes" rows="3"
+                          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          placeholder="Any additional notes about the delivery..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex justify-end space-x-3">
+            <a href="{{ url_for('logistics.list_deliveries') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+                Confirm Delivery
+            </button>
+        </div>
+        
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Signature Pad Library -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('signature_canvas');
+    const hiddenField = document.getElementById('receiver_signature_svg');
+    const clearButton = document.getElementById('clear_signature');
+    const placeholder = document.getElementById('signature_placeholder');
+    const statusElement = document.getElementById('signature_status');
+    const form = canvas.closest('form');
+    
+    // Initialize SignaturePad
+    const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(250, 250, 250)',
+        penColor: 'rgb(0, 0, 0)',
+        minWidth: 1,
+        maxWidth: 3,
+        throttle: 16, // max 60fps
+        touchSupported: true
+    });
+    
+    // Check for dark mode
+    const isDarkMode = document.documentElement.classList.contains('dark') || 
+                       window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (isDarkMode) {
+        signaturePad.backgroundColor = 'rgb(17, 24, 39)'; // gray-900
+        signaturePad.penColor = 'rgb(255, 255, 255)';
+    }
+    
+    // Resize canvas to display size
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const rect = canvas.getBoundingClientRect();
+        
+        canvas.width = rect.width * ratio;
+        canvas.height = rect.height * ratio;
+        canvas.getContext('2d').scale(ratio, ratio);
+        
+        // Restore signature after resize if it exists
+        if (signaturePad.toData().length > 0) {
+            signaturePad.fromData(signaturePad.toData());
+        } else {
+            // Clear to apply background
+            signaturePad.clear();
+        }
+    }
+    
+    // Initialize canvas size
+    resizeCanvas();
+    
+    // Handle window resize with debounce
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            // Save current signature data
+            const data = signaturePad.toData();
+            resizeCanvas();
+            // Restore signature
+            if (data.length > 0) {
+                signaturePad.fromData(data);
+            }
+        }, 250);
+    });
+    
+    // Update status when user draws
+    signaturePad.addEventListener('afterUpdateStroke', function() {
+        updateStatus(true);
+    });
+    
+    // Update status indicator
+    function updateStatus(hasSignature) {
+        if (hasSignature) {
+            placeholder.style.display = 'none';
+            statusElement.innerHTML = `
+                <span class="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>
+                <span class="text-green-600 dark:text-green-400">Signature captured</span>
+            `;
+        } else {
+            placeholder.style.display = 'flex';
+            statusElement.innerHTML = `
+                <span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 mr-1.5"></span>
+                <span>No signature</span>
+            `;
+        }
+    }
+    
+    // Clear signature button
+    clearButton.addEventListener('click', function() {
+        signaturePad.clear();
+        hiddenField.value = '';
+        updateStatus(false);
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        if (!signaturePad.isEmpty()) {
+            // Convert signature to SVG and store in hidden field
+            const svgData = signaturePad.toSVG();
+            hiddenField.value = svgData;
+        } else {
+            hiddenField.value = '';
+        }
+    });
+    
+    // Handle touch events for mobile devices
+    canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+    
+    canvas.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+    
+    canvas.addEventListener('touchend', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+});
+</script>
+{% endblock %}

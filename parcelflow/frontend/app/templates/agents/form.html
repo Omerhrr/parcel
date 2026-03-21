@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Agent' if agent else 'New Agent' }} - ParcelFlow{% endblock %}
+
+{% block page_title %}{{ 'Edit Agent' if agent else 'New Agent' }}{% endblock %}
+
+{% block content %}
+
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {% if agent %}
+                Update agent information for {{ agent.name }}
+            {% else %}
+                Add a new delivery agent to your team
+            {% endif %}
+        </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{{ url_for('agents.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Agents
+        </a>
+    </div>
+</div>
+
+<form method="POST" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <!-- Basic Information -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Basic Information</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name *</label>
+                    <input type="text" name="name" id="name" required
+                           value="{{ agent.name if agent else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                           placeholder="John Doe">
+                </div>
+                <div>
+                    <label for="employee_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Employee ID</label>
+                    <input type="text" name="employee_id" id="employee_id"
+                           value="{{ agent.employee_id if agent else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                           placeholder="EMP-001">
+                </div>
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number *</label>
+                    <input type="tel" name="phone" id="phone" required
+                           value="{{ agent.phone if agent else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                           placeholder="+234 801 234 5678">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" name="email" id="email"
+                           value="{{ agent.email if agent else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                           placeholder="agent@example.com">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vehicle & Assignment -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Vehicle & Assignment</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="vehicle_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle Type *</label>
+                    <select name="vehicle_type" id="vehicle_type" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="bike" {% if agent and agent.vehicle_type == 'bike' %}selected{% endif %}>Motorcycle</option>
+                        <option value="car" {% if agent and agent.vehicle_type == 'car' %}selected{% endif %}>Car</option>
+                        <option value="van" {% if agent and agent.vehicle_type == 'van' %}selected{% endif %}>Van</option>
+                        <option value="truck" {% if agent and agent.vehicle_type == 'truck' %}selected{% endif %}>Truck</option>
+                        <option value="bicycle" {% if agent and agent.vehicle_type == 'bicycle' %}selected{% endif %}>Bicycle</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="branch_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Assigned Branch</label>
+                    <select name="branch_id" id="branch_id"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">All Branches</option>
+                        {% for branch in branches %}
+                        <option value="{{ branch.id }}" {% if agent and agent.branch_id == branch.id %}selected{% endif %}>{{ branch.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if agent %}
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                    <select name="status" id="status"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="available" {% if agent.status == 'available' %}selected{% endif %}>Available</option>
+                        <option value="busy" {% if agent.status == 'busy' %}selected{% endif %}>Busy</option>
+                        <option value="off_duty" {% if agent.status == 'off_duty' %}selected{% endif %}>Off Duty</option>
+                        <option value="inactive" {% if agent.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Compensation -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Compensation</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="base_salary" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Base Salary</label>
+                    <input type="number" name="base_salary" id="base_salary" step="0.01"
+                           value="{{ agent.base_salary if agent else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                           placeholder="0.00">
+                </div>
+                <div>
+                    <label for="commission_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Commission Rate (%)</label>
+                    <input type="number" name="commission_rate" id="commission_rate" step="0.01" min="0" max="100"
+                           value="{{ agent.commission_rate if agent else '' }}"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                           placeholder="10">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Additional Notes</h3>
+        </div>
+        <div class="p-6">
+            <textarea name="notes" id="notes" rows="3"
+                      class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      placeholder="Any additional notes...">{{ agent.notes if agent else '' }}</textarea>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex justify-end space-x-3">
+        <a href="{{ url_for('agents.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+        </a>
+        <button type="submit" class="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+            {{ 'Update Agent' if agent else 'Create Agent' }}
+        </button>
+    </div>
+    
+</form>
+
+{% endblock %}

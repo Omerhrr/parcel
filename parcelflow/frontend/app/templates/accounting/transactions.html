@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - ParcelFlow{% endblock %}
+
+{% block page_title %}Transactions{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">View all accounting transactions</p>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reference</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance After</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% if transactions and transactions|length > 0 %}
+                    {% for transaction in transactions %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                            #{{ transaction.id }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {{ transaction.account.name if transaction.account else 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if transaction.type == 'debit' %}
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
+                                Debit
+                            </span>
+                            {% elif transaction.type == 'credit' %}
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                                Credit
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right {% if transaction.type == 'debit' %}text-red-600 dark:text-red-400{% else %}text-green-600 dark:text-green-400{% endif %}">
+                            {% if transaction.type == 'debit' %}-{% endif %}{{ transaction.amount|currency }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {{ transaction.reference if transaction.reference else '-' }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                            <div class="max-w-xs truncate">{{ transaction.description if transaction.description else '-' }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {{ transaction.transaction_date|date }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-right">
+                            {{ transaction.balance_after|currency if transaction.balance_after else '-' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No transactions found</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.total > pagination.page_size %}
+<div class="mt-6 flex items-center justify-between">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+        Showing {{ ((pagination.page - 1) * pagination.page_size) + 1 }} to {{ [pagination.page * pagination.page_size, pagination.total] | min }} of {{ pagination.total }}
+    </p>
+    <div class="flex space-x-2">
+        {% if pagination.page > 1 %}
+        <a href="{{ url_for('accounting.list_transactions', page=pagination.page - 1) }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Previous</a>
+        {% endif %}
+        {% if pagination.page < ((pagination.total + pagination.page_size - 1) // pagination.page_size) %}
+        <a href="{{ url_for('accounting.list_transactions', page=pagination.page + 1) }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="mt-6">
+    <a href="{{ url_for('accounting.index') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Accounting
+    </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}{% if waybill %}Edit Waybill{% else %}New Waybill{% endif %} - ParcelFlow{% endblock %}
+
+{% block page_title %}{% if waybill %}Edit Waybill{% else %}New Waybill{% endif %}{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create a new shipment document</p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+        <a href="{{ url_for('waybills.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<form method="POST" action="{% if waybill %}{{ url_for('waybills.update', waybill_id=waybill.id) }}{% else %}{{ url_for('waybills.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <div class="space-y-6">
+        
+        <!-- Shipment Type -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Shipment Type</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-3 gap-4">
+                    <label class="relative flex cursor-pointer rounded-lg border {% if not waybill or waybill.shipment_type == 'warehouse_delivery' %}border-primary-500 bg-primary-50 dark:bg-primary-900/20{% else %}border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700{% endif %} p-4 focus:outline-none">
+                        <input type="radio" name="shipment_type" value="warehouse_delivery" {% if not waybill or waybill.shipment_type == 'warehouse_delivery' %}checked{% endif %} class="sr-only">
+                        <div class="flex flex-1">
+                            <div class="flex items-center">
+                                <div class="text-sm">
+                                    <span class="font-medium text-gray-900 dark:text-white">Warehouse Delivery</span>
+                                    <p class="text-gray-500 dark:text-gray-400">Deliver from warehouse to customer</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="relative flex cursor-pointer rounded-lg border {% if waybill and waybill.shipment_type == 'pickup_delivery' %}border-primary-500 bg-primary-50 dark:bg-primary-900/20{% else %}border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700{% endif %} p-4 focus:outline-none">
+                        <input type="radio" name="shipment_type" value="pickup_delivery" {% if waybill and waybill.shipment_type == 'pickup_delivery' %}checked{% endif %} class="sr-only">
+                        <div class="flex flex-1">
+                            <div class="flex items-center">
+                                <div class="text-sm">
+                                    <span class="font-medium text-gray-900 dark:text-white">Pickup Delivery</span>
+                                    <p class="text-gray-500 dark:text-gray-400">Pick up from sender and deliver</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="relative flex cursor-pointer rounded-lg border {% if waybill and waybill.shipment_type == 'dropoff_delivery' %}border-primary-500 bg-primary-50 dark:bg-primary-900/20{% else %}border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700{% endif %} p-4 focus:outline-none">
+                        <input type="radio" name="shipment_type" value="dropoff_delivery" {% if waybill and waybill.shipment_type == 'dropoff_delivery' %}checked{% endif %} class="sr-only">
+                        <div class="flex flex-1">
+                            <div class="flex items-center">
+                                <div class="text-sm">
+                                    <span class="font-medium text-gray-900 dark:text-white">Dropoff Delivery</span>
+                                    <p class="text-gray-500 dark:text-gray-400">Sender drops off at branch</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sender Information -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Sender Information</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="sender_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender Name *</label>
+                        <input type="text" name="sender_name" id="sender_name" required
+                               value="{{ waybill.sender_name if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="sender_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender Phone *</label>
+                        <input type="tel" name="sender_phone" id="sender_phone" required
+                               value="{{ waybill.sender_phone if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="sender_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender Email</label>
+                        <input type="email" name="sender_email" id="sender_email"
+                               value="{{ waybill.sender_email if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="sender_city" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender City</label>
+                        <input type="text" name="sender_city" id="sender_city"
+                               value="{{ waybill.sender_city if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="sender_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender Address</label>
+                        <textarea name="sender_address" id="sender_address" rows="2"
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ waybill.sender_address if waybill else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Receiver Information -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Receiver Information</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="receiver_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Receiver Name *</label>
+                        <input type="text" name="receiver_name" id="receiver_name" required
+                               value="{{ waybill.receiver_name if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="receiver_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Receiver Phone *</label>
+                        <input type="tel" name="receiver_phone" id="receiver_phone" required
+                               value="{{ waybill.receiver_phone if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="receiver_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Receiver Email</label>
+                        <input type="email" name="receiver_email" id="receiver_email"
+                               value="{{ waybill.receiver_email if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="receiver_city" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Receiver City *</label>
+                        <input type="text" name="receiver_city" id="receiver_city" required
+                               value="{{ waybill.receiver_city if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="receiver_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Address *</label>
+                        <textarea name="receiver_address" id="receiver_address" rows="2" required
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ waybill.receiver_address if waybill else '' }}</textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="receiver_landmark" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Landmark</label>
+                        <input type="text" name="receiver_landmark" id="receiver_landmark"
+                               value="{{ waybill.receiver_landmark if waybill else '' }}"
+                               placeholder="Nearby landmark for easier location"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Item Details -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Item Details</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
+                        <input type="number" name="quantity" id="quantity" min="1" value="{{ waybill.quantity if waybill else 1 }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight (kg)</label>
+                        <input type="number" name="weight" id="weight" step="0.1"
+                               value="{{ waybill.weight if waybill else '' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="dimensions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Dimensions (LxWxH cm)</label>
+                        <input type="text" name="dimensions" id="dimensions"
+                               value="{{ waybill.dimensions if waybill else '' }}"
+                               placeholder="30x20x15"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label for="item_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Item Description</label>
+                        <textarea name="item_description" id="item_description" rows="2"
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ waybill.item_description if waybill else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pricing -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Pricing & Payment</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="declared_value" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Declared Value</label>
+                        <div class="mt-1 relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 dark:text-gray-400 sm:text-sm">₦</span>
+                            </div>
+                            <input type="number" name="declared_value" id="declared_value" step="0.01"
+                                   value="{{ waybill.declared_value if waybill else 0 }}"
+                                   class="block w-full pl-7 pr-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="delivery_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Fee</label>
+                        <div class="mt-1 relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 dark:text-gray-400 sm:text-sm">₦</span>
+                            </div>
+                            <input type="number" name="delivery_fee" id="delivery_fee" step="0.01"
+                                   value="{{ waybill.delivery_fee if waybill else 0 }}"
+                                   class="block w-full pl-7 pr-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="total_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</label>
+                        <div class="mt-1 relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 dark:text-gray-400 sm:text-sm">₦</span>
+                            </div>
+                            <input type="number" name="total_amount" id="total_amount" step="0.01"
+                                   value="{{ waybill.total_amount if waybill else 0 }}"
+                                   class="block w-full pl-7 pr-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="payment_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Type</label>
+                        <select name="payment_type" id="payment_type"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="cod" {% if waybill and waybill.payment_type == 'cod' %}selected{% endif %}>Cash on Delivery</option>
+                            <option value="prepaid" {% if waybill and waybill.payment_type == 'prepaid' %}selected{% endif %}>Prepaid</option>
+                            <option value="invoice" {% if waybill and waybill.payment_type == 'invoice' %}selected{% endif %}>Invoice</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="cod_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">COD Amount</label>
+                        <div class="mt-1 relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 dark:text-gray-400 sm:text-sm">₦</span>
+                            </div>
+                            <input type="number" name="cod_amount" id="cod_amount" step="0.01"
+                                   value="{{ waybill.cod_amount if waybill else 0 }}"
+                                   class="block w-full pl-7 pr-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notes -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Additional Information</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                        <textarea name="notes" id="notes" rows="2"
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ waybill.notes if waybill else '' }}</textarea>
+                    </div>
+                    <div>
+                        <label for="special_instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Special Instructions</label>
+                        <textarea name="special_instructions" id="special_instructions" rows="2"
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ waybill.special_instructions if waybill else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex justify-end space-x-3">
+            <a href="{{ url_for('waybills.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+                {% if waybill %}Update Waybill{% else %}Create Waybill{% endif %}
+            </button>
+        </div>
+        
+    </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-calculate total
+    const declaredValue = document.getElementById('declared_value');
+    const deliveryFee = document.getElementById('delivery_fee');
+    const totalAmount = document.getElementById('total_amount');
+    
+    function updateTotal() {
+        const declared = parseFloat(declaredValue.value) || 0;
+        const fee = parseFloat(deliveryFee.value) || 0;
+        totalAmount.value = (declared + fee).toFixed(2);
+    }
+    
+    declaredValue.addEventListener('input', updateTotal);
+    deliveryFee.addEventListener('input', updateTotal);
+    
+    // Shipment type selection - make cards clickable with visual feedback
+    const shipmentTypeInputs = document.querySelectorAll('input[name="shipment_type"]');
+    const shipmentTypeCards = document.querySelectorAll('input[name="shipment_type"]').forEach(input => {
+        input.addEventListener('change', function() {
+            // Remove selected state from all cards
+            document.querySelectorAll('input[name="shipment_type"]').forEach(radio => {
+                const card = radio.closest('label');
+                card.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
+                card.classList.add('border-gray-200', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700');
+            });
+            
+            // Add selected state to clicked card
+            const selectedCard = this.closest('label');
+            selectedCard.classList.remove('border-gray-200', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700');
+            selectedCard.classList.add('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
+        });
+    });
+</script>
+{% endblock %}

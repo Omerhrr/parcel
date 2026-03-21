@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Branches - ParcelFlow{% endblock %}
+
+{% block page_title %}Branches{% endblock %}
+
+{% block content %}
+
+<div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your business locations and branches</p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+        <a href="{{ url_for('settings.branch_create') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Branch
+        </a>
+    </div>
+</div>
+
+<!-- Settings Navigation -->
+<div class="mb-6">
+    <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto">
+        <a href="{{ url_for('settings.index') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Overview
+        </a>
+        <a href="{{ url_for('settings.business') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Business
+        </a>
+        <a href="{{ url_for('users.profile') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Profile
+        </a>
+        <a href="{{ url_for('settings.branches') }}" class="border-primary-500 text-primary-600 dark:text-primary-400 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Branches
+        </a>
+        <a href="{{ url_for('users.index') }}" class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            Users
+        </a>
+    </nav>
+</div>
+
+<!-- Branches Table -->
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Branch</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Location</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                    <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% if branches %}
+                    {% for branch in branches %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ branch.name }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ branch.code or '-' }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <div>{{ branch.address or '-' }}</div>
+                            <div>{{ branch.city }}, {{ branch.country }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <div>{{ branch.phone or '-' }}</div>
+                            <div>{{ branch.email or '-' }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full 
+                                {% if branch.status == 'active' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400
+                                {% else %}bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400{% endif %}">
+                                {{ branch.status|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if branch.is_headquarters %}
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                                Headquarters
+                            </span>
+                            {% else %}
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Branch</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ url_for('settings.branch_edit', branch_id=branch.id) }}" class="text-primary-600 dark:text-primary-400 hover:text-primary-500 mr-4">Edit</a>
+                            <form action="{{ url_for('settings.branch_delete', branch_id=branch.id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this branch?')">
+                                <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-500">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No branches found</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new branch.</p>
+                            <div class="mt-6">
+                                <a href="{{ url_for('settings.branch_create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add Branch
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

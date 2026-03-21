@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vendor Portal{% endblock %} - ParcelFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-transition {
+            transition: width 0.3s ease, transform 0.3s ease;
+        }
+        .main-transition {
+            transition: margin-left 0.3s ease;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <!-- Sidebar Overlay (mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 sidebar-transition w-64 -translate-x-full lg:translate-x-0">
+        <!-- Logo Section -->
+        <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-lg bg-primary-600 flex items-center justify-center">
+                    <i class="fas fa-store text-white text-lg"></i>
+                </div>
+                <span class="ml-3 text-lg font-bold text-gray-900 dark:text-white sidebar-text">Vendor Portal</span>
+            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            <a href="{{ url_for('vendor_portal.dashboard') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.dashboard' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-home w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('vendor_portal.orders') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.orders' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-shopping-bag w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Orders</span>
+            </a>
+
+            <a href="{{ url_for('vendor_portal.create_order') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.create_order' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-plus-circle w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Create Order</span>
+            </a>
+
+            <a href="{{ url_for('vendor_portal.inventory') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.inventory' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-boxes w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Inventory</span>
+            </a>
+
+            <a href="{{ url_for('vendor_portal.stock_requests') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.stock_requests' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-paper-plane w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Stock Requests</span>
+            </a>
+
+            <a href="{{ url_for('vendor_portal.create_stock_request') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.create_stock_request' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-plus w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Send Stock</span>
+            </a>
+
+            <a href="{{ url_for('vendor_portal.remittances') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'vendor_portal.remittances' %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
+                <i class="fas fa-money-bill-wave w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Remittances</span>
+            </a>
+        </nav>
+
+        <!-- Bottom Section -->
+        <div class="border-t border-gray-200 dark:border-gray-700 p-3">
+            <a href="{{ url_for('vendor_portal.logout') }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                <span class="ml-3 sidebar-text">Logout</span>
+            </a>
+        </div>
+
+        <!-- Collapse Button (desktop) -->
+        <button onclick="toggleSidebarCollapse()" class="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 shadow-sm hover:shadow transition-all">
+            <i id="collapse-icon" class="fas fa-chevron-left text-xs"></i>
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <div id="main-content" class="min-h-screen main-transition lg:ml-64">
+        <!-- Top Header -->
+        <header class="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between h-16 px-4 sm:px-6">
+                <!-- Mobile menu button -->
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+
+                <!-- Page Title -->
+                <h1 class="text-lg font-semibold text-gray-900 dark:text-white hidden sm:block">{% block page_title %}Dashboard{% endblock %}</h1>
+
+                <!-- Right Side Actions -->
+                <div class="flex items-center space-x-3">
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Toggle dark mode">
+                        <i id="dark-mode-icon" class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:inline"></i>
+                    </button>
+
+                    <!-- User Menu -->
+                    <div class="flex items-center space-x-3">
+                        <div class="hidden sm:block text-right">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ session.get('vendor_name', 'Vendor') }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Vendor</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                            <i class="fas fa-user text-primary-600 dark:text-primary-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="px-4 sm:px-6 py-4">
+                    {% for category, message in messages %}
+                        <div class="mb-2 p-4 rounded-lg flex items-center {% if category == 'success' %}bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800{% elif category == 'error' %}bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800{% else %}bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800{% endif %}">
+                            <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} mr-3"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page Content -->
+        <main class="p-4 sm:p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        // Initialize dark mode from localStorage
+        if (localStorage.getItem('darkMode') === 'true' || 
+            (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+        }
+
+        // Toggle sidebar (mobile)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Toggle sidebar collapse (desktop)
+        let sidebarCollapsed = false;
+        function toggleSidebarCollapse() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const collapseIcon = document.getElementById('collapse-icon');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            sidebarCollapsed = !sidebarCollapsed;
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                mainContent.classList.remove('lg:ml-64');
+                mainContent.classList.add('lg:ml-20');
+                collapseIcon.classList.remove('fa-chevron-left');
+                collapseIcon.classList.add('fa-chevron-right');
+                sidebarTexts.forEach(el => el.classList.add('hidden'));
+            } else {
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                mainContent.classList.remove('lg:ml-20');
+                mainContent.classList.add('lg:ml-64');
+                collapseIcon.classList.remove('fa-chevron-right');
+                collapseIcon.classList.add('fa-chevron-left');
+                sidebarTexts.forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        // Close sidebar on mobile when clicking outside
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,745 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Dashboard - ParcelFlow{% endblock %}
+
+{% block page_title %}Financial Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+    .progress-ring-circle {
+        transition: stroke-dashoffset 0.5s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Revenue, expenses, and financial performance metrics</p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+        <!-- Date Range Filter with HTMX -->
+        <select id="date-range-filter" 
+                name="date_range"
+                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                hx-get="{{ url_for('dashboard.financial_data') }}"
+                hx-target="#financial-content"
+                hx-trigger="change"
+                hx-include="this">
+            <option value="today">Today</option>
+            <option value="7days">Last 7 Days</option>
+            <option value="30days" selected>Last 30 Days</option>
+            <option value="month">This Month</option>
+            <option value="last_month">Last Month</option>
+            <option value="quarter">This Quarter</option>
+        </select>
+        <button class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export
+        </button>
+    </div>
+</div>
+
+<div id="financial-content">
+<!-- Enhanced Stats cards -->
+<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    
+    <!-- Total Revenue -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Revenue</dt>
+                        <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ data.total_revenue|default(0)|currency }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
+            <div class="text-sm flex items-center">
+                {% if data.revenue_change and data.revenue_change > 0 %}
+                <span class="text-green-600 dark:text-green-400 font-medium flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                    {{ data.revenue_change }}%
+                </span>
+                {% elif data.revenue_change %}
+                <span class="text-red-600 dark:text-red-400 font-medium flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                    {{ data.revenue_change|abs }}%
+                </span>
+                {% else %}
+                <span class="text-gray-500 dark:text-gray-400">No change</span>
+                {% endif %}
+                <span class="text-gray-500 dark:text-gray-400 ml-1">vs previous period</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Net Profit -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Net Profit</dt>
+                        <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ data.net_profit|default(0)|currency }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
+            <div class="text-sm">
+                <span class="text-purple-600 dark:text-purple-400 font-medium">{{ data.profit_margin|default(0) }}%</span>
+                <span class="text-gray-500 dark:text-gray-400"> profit margin</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Average Order Value -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Avg Order Value</dt>
+                        <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ data.avg_order_value|default(0)|currency }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
+            <div class="text-sm">
+                <span class="text-blue-600 dark:text-blue-400 font-medium">{{ data.total_orders|default(0) }}</span>
+                <span class="text-gray-500 dark:text-gray-400"> total orders</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Collection Rate -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">COD Collection Rate</dt>
+                        <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ data.collection_rate|default(0) }}%</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
+            <div class="text-sm">
+                <span class="text-yellow-600 dark:text-yellow-400 font-medium">{{ data.cod_collected|default(0)|currency }}</span>
+                <span class="text-gray-500 dark:text-gray-400"> / {{ data.cod_total|default(0)|currency }}</span>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Additional Financial Summary Cards -->
+<div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+    
+    <!-- COD Collected -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">COD Collected</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ data.cod_collected|default(0)|currency }}</p>
+                </div>
+                <div class="relative w-12 h-12">
+                    <svg class="w-12 h-12 progress-ring" viewBox="0 0 36 36">
+                        <path class="text-gray-200 dark:text-gray-700" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="text-green-500 progress-ring-circle" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="{{ data.collection_rate|default(85) }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3 text-sm">
+                <span class="text-yellow-600 dark:text-yellow-400 font-medium">{{ data.cod_pending|default(0)|currency }}</span>
+                <span class="text-gray-500 dark:text-gray-400"> pending collection</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delivery Fees -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Delivery Fees</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ data.delivery_fees|default(0)|currency }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3 text-sm">
+                <span class="text-blue-600 dark:text-blue-400 font-medium">{{ data.deliveries_count|default(0) }}</span>
+                <span class="text-gray-500 dark:text-gray-400"> deliveries completed</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Expenses -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ data.total_expenses|default(0)|currency }}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3 text-sm">
+                <span class="text-gray-500 dark:text-gray-400">Agent commissions: </span>
+                <span class="text-red-600 dark:text-red-400 font-medium">{{ data.agent_commissions|default(0)|currency }}</span>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    
+    <!-- Revenue Trend Chart -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Revenue Trend</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Daily revenue for last 30 days</p>
+        </div>
+        <div class="p-6">
+            <div id="revenueTrendChart" style="height: 300px;"></div>
+        </div>
+    </div>
+    
+    <!-- Revenue Breakdown Chart -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Revenue Breakdown</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Revenue by payment type</p>
+        </div>
+        <div class="p-6">
+            <div id="revenueBreakdownChart" style="height: 300px;"></div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Charts Row 2 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    
+    <!-- Weekly Comparison Chart -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Weekly Comparison</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">This week vs last week revenue</p>
+        </div>
+        <div class="p-6">
+            <div id="weeklyComparisonChart" style="height: 300px;"></div>
+        </div>
+    </div>
+    
+    <!-- Expense Categories Chart -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Expense Categories</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Expenses grouped by category</p>
+        </div>
+        <div class="p-6">
+            <div id="expenseCategoriesChart" style="height: 300px;"></div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Main content grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    
+    <!-- Revenue by Payment Type -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Revenue by Payment Type</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full bg-green-500 mr-3"></div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Cash on Delivery</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ data.cod_revenue|default(0)|currency }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full bg-blue-500 mr-3"></div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Prepaid</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ data.prepaid_revenue|default(0)|currency }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full bg-purple-500 mr-3"></div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Bank Transfer</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ data.bank_transfer_revenue|default(0)|currency }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Routes -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Top Delivery Routes</h3>
+        </div>
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% if data.top_routes and data.top_routes|length > 0 %}
+                {% for route in data.top_routes %}
+                <div class="px-6 py-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ route.origin }} → {{ route.destination }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ route.deliveries }} deliveries</p>
+                    </div>
+                    <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ route.revenue|currency }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    No route data available
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+</div>
+
+<!-- Recent Transactions -->
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Transactions</h3>
+            <a href="#" class="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500">View all</a>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% if data.recent_transactions and data.recent_transactions|length > 0 %}
+                    {% for txn in data.recent_transactions %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {{ txn.date|datetime if txn.date else '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                                {% if txn.type == 'income' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400
+                                {% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %}">
+                                {{ txn.type|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ txn.description }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium 
+                            {% if txn.type == 'income' %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                            {% if txn.type == 'income' %}+{% else %}-{% endif %}{{ txn.amount|currency }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                            No recent transactions
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- ECharts -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<script>
+(function() {
+    // Detect dark mode
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    // ECharts theme configuration
+    const chartTextColor = isDarkMode ? '#9CA3AF' : '#6B7280';
+    const chartAxisLineColor = isDarkMode ? '#374151' : '#E5E7EB';
+    const chartBackgroundColor = isDarkMode ? 'transparent' : '#ffffff';
+    
+    // Mock data - in production, this would come from the backend
+    // 1. Revenue Trend Data (Last 30 days)
+    const revenueTrendData = {{ data.revenue_trend | tojson | safe if data.revenue_trend else '''{
+        dates: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"],
+        revenue: [12500, 14200, 11800, 15600, 13800, 16500, 14200, 12800, 15200, 17800, 14500, 13200, 16800, 15500, 14200, 18900, 16200, 13800, 17500, 15800, 14200, 19800, 17200, 14800, 18200, 16500, 15200, 21000, 18800, 16500]
+    }'''}};
+    
+    // 2. Revenue Breakdown Data
+    const revenueBreakdownData = {{ data.revenue_breakdown | tojson | safe if data.revenue_breakdown else '''[
+        { name: "Cash on Delivery", value: 125000, color: "#10B981" },
+        { name: "Prepaid", value: 85000, color: "#3B82F6" },
+        { name: "Bank Transfer", value: 45000, color: "#8B5CF6" }
+    ]'''}};
+    
+    // 3. Weekly Comparison Data
+    const weeklyComparisonData = {{ data.weekly_comparison | tojson | safe if data.weekly_comparison else '''{
+        days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        thisWeek: [18500, 22200, 16800, 24600, 21800, 28500, 19200],
+        lastWeek: [16500, 19200, 14800, 21600, 19800, 25500, 17200]
+    }'''}};
+    
+    // 4. Expense Categories Data
+    const expenseCategoriesData = {{ data.expense_categories | tojson | safe if data.expense_categories else '''[
+        { category: "Agent Commissions", amount: 45000 },
+        { category: "Fuel & Transport", amount: 28000 },
+        { category: "Warehouse Rent", amount: 22000 },
+        { category: "Staff Salaries", amount: 35000 },
+        { category: "Packaging Materials", amount: 12000 },
+        { category: "Utilities", amount: 8500 },
+        { category: "Insurance", amount: 6500 },
+        { category: "Maintenance", amount: 4500 }
+    ]'''}};
+    
+    // 1. Revenue Trend Chart (Area Chart)
+    const revenueTrendChart = echarts.init(document.getElementById('revenueTrendChart'));
+    const revenueTrendOption = {
+        backgroundColor: chartBackgroundColor,
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+            borderColor: isDarkMode ? '#374151' : '#E5E7EB',
+            textStyle: { color: isDarkMode ? '#F3F4F6' : '#1F2937' },
+            formatter: function(params) {
+                return `Day ${params[0].axisValue}<br/>Revenue: $${params[0].value.toLocaleString()}`;
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: revenueTrendData.dates,
+            axisLine: { lineStyle: { color: chartAxisLineColor } },
+            axisLabel: { color: chartTextColor }
+        },
+        yAxis: {
+            type: 'value',
+            axisLine: { lineStyle: { color: chartAxisLineColor } },
+            axisLabel: { 
+                color: chartTextColor,
+                formatter: function(value) {
+                    return '$' + (value / 1000) + 'k';
+                }
+            },
+            splitLine: { lineStyle: { color: chartAxisLineColor } }
+        },
+        series: [
+            {
+                name: 'Revenue',
+                type: 'line',
+                smooth: true,
+                symbol: 'none',
+                data: revenueTrendData.revenue,
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(16, 185, 129, 0.4)' },
+                        { offset: 1, color: 'rgba(16, 185, 129, 0.05)' }
+                    ])
+                },
+                lineStyle: { 
+                    color: '#10B981', 
+                    width: 3,
+                    shadowColor: 'rgba(16, 185, 129, 0.5)',
+                    shadowBlur: 10
+                },
+                itemStyle: { color: '#10B981' }
+            }
+        ]
+    };
+    revenueTrendChart.setOption(revenueTrendOption);
+    
+    // 2. Revenue Breakdown Chart (Donut)
+    const revenueBreakdownChart = echarts.init(document.getElementById('revenueBreakdownChart'));
+    const totalRevenue = revenueBreakdownData.reduce((sum, item) => sum + item.value, 0);
+    const revenueBreakdownOption = {
+        backgroundColor: chartBackgroundColor,
+        tooltip: {
+            trigger: 'item',
+            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+            borderColor: isDarkMode ? '#374151' : '#E5E7EB',
+            textStyle: { color: isDarkMode ? '#F3F4F6' : '#1F2937' },
+            formatter: '{b}: ${c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            right: '5%',
+            top: 'center',
+            textStyle: { color: chartTextColor }
+        },
+        series: [
+            {
+                name: 'Revenue',
+                type: 'pie',
+                radius: ['45%', '70%'],
+                center: ['40%', '50%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 8,
+                    borderColor: isDarkMode ? '#1F2937' : '#ffffff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: true,
+                    position: 'center',
+                    formatter: function() {
+                        return `{total|$${totalRevenue.toLocaleString()}}\n{label|Total Revenue}`;
+                    },
+                    rich: {
+                        total: {
+                            fontSize: 24,
+                            fontWeight: 'bold',
+                            color: isDarkMode ? '#F3F4F6' : '#1F2937'
+                        },
+                        label: {
+                            fontSize: 12,
+                            color: chartTextColor,
+                            padding: [5, 0, 0, 0]
+                        }
+                    }
+                },
+                emphasis: {
+                    label: { show: true, fontSize: 16, fontWeight: 'bold' }
+                },
+                labelLine: { show: false },
+                data: revenueBreakdownData.map(item => ({
+                    value: item.value,
+                    name: item.name,
+                    itemStyle: { color: item.color }
+                }))
+            }
+        ]
+    };
+    revenueBreakdownChart.setOption(revenueBreakdownOption);
+    
+    // 3. Weekly Comparison Chart (Bar Chart)
+    const weeklyChart = echarts.init(document.getElementById('weeklyComparisonChart'));
+    const weeklyOption = {
+        backgroundColor: chartBackgroundColor,
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+            borderColor: isDarkMode ? '#374151' : '#E5E7EB',
+            textStyle: { color: isDarkMode ? '#F3F4F6' : '#1F2937' }
+        },
+        legend: {
+            data: ['This Week', 'Last Week'],
+            textStyle: { color: chartTextColor },
+            top: 0
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: weeklyComparisonData.days,
+            axisLine: { lineStyle: { color: chartAxisLineColor } },
+            axisLabel: { color: chartTextColor }
+        },
+        yAxis: {
+            type: 'value',
+            axisLine: { lineStyle: { color: chartAxisLineColor } },
+            axisLabel: { 
+                color: chartTextColor,
+                formatter: function(value) {
+                    return '$' + (value / 1000) + 'k';
+                }
+            },
+            splitLine: { lineStyle: { color: chartAxisLineColor } }
+        },
+        series: [
+            {
+                name: 'This Week',
+                type: 'bar',
+                data: weeklyComparisonData.thisWeek,
+                itemStyle: { 
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#3B82F6' },
+                        { offset: 1, color: '#60A5FA' }
+                    ]),
+                    borderRadius: [4, 4, 0, 0]
+                }
+            },
+            {
+                name: 'Last Week',
+                type: 'bar',
+                data: weeklyComparisonData.lastWeek,
+                itemStyle: { 
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#9CA3AF' },
+                        { offset: 1, color: '#D1D5DB' }
+                    ]),
+                    borderRadius: [4, 4, 0, 0]
+                }
+            }
+        ]
+    };
+    weeklyChart.setOption(weeklyOption);
+    
+    // 4. Expense Categories Chart (Horizontal Bar)
+    const expenseChart = echarts.init(document.getElementById('expenseCategoriesChart'));
+    const expenseOption = {
+        backgroundColor: chartBackgroundColor,
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+            borderColor: isDarkMode ? '#374151' : '#E5E7EB',
+            textStyle: { color: isDarkMode ? '#F3F4F6' : '#1F2937' },
+            formatter: function(params) {
+                return `${params[0].axisValue}<br/>$${params[0].value.toLocaleString()}`;
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            axisLine: { lineStyle: { color: chartAxisLineColor } },
+            axisLabel: { 
+                color: chartTextColor,
+                formatter: function(value) {
+                    return '$' + (value / 1000) + 'k';
+                }
+            },
+            splitLine: { lineStyle: { color: chartAxisLineColor } }
+        },
+        yAxis: {
+            type: 'category',
+            data: expenseCategoriesData.map(item => item.category),
+            axisLine: { lineStyle: { color: chartAxisLineColor } },
+            axisLabel: { 
+                color: chartTextColor,
+                width: 100,
+                overflow: 'truncate'
+            }
+        },
+        series: [
+            {
+                name: 'Amount',
+                type: 'bar',
+                data: expenseCategoriesData.map((item, index) => ({
+                    value: item.amount,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: '#EF4444' },
+                            { offset: 1, color: '#F87171' }
+                        ]),
+                        borderRadius: [0, 4, 4, 0]
+                    }
+                })),
+                label: {
+                    show: true,
+                    position: 'right',
+                    color: chartTextColor,
+                    formatter: function(params) {
+                        return '$' + params.value.toLocaleString();
+                    }
+                }
+            }
+        ]
+    };
+    expenseChart.setOption(expenseOption);
+    
+    // Resize charts on window resize
+    window.addEventListener('resize', function() {
+        revenueTrendChart.resize();
+        revenueBreakdownChart.resize();
+        weeklyChart.resize();
+        expenseChart.resize();
+    });
+    
+    // Listen for dark mode changes and redraw charts
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'class') {
+                location.reload(); // Simple approach: reload page when theme changes
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+})();
+</script>
+{% endblock %}

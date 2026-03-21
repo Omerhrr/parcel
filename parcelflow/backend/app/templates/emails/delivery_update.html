@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Update - {{ waybill_number }}{% endblock %}
+
+{% block header_subtitle %}
+<h1>Shipment Update</h1>
+{% endblock %}
+
+{% block content %}
+<p>Hello{% if recipient_name %} {{ recipient_name }}{% endif %},</p>
+
+<p>Good news! There's an update on your shipment.</p>
+
+<div class="info-box">
+    <h3>Shipment Details</h3>
+    <p><strong>Tracking Number:</strong> {{ waybill_number }}</p>
+    <p><strong>Status:</strong> <span style="color: #10B981; font-weight: 600;">{{ status }}</span></p>
+    <p><strong>Update:</strong> {{ status_message }}</p>
+</div>
+
+<div style="text-align: center;">
+    <a href="{{ tracking_url }}" class="button">Track Your Shipment</a>
+</div>
+
+<p style="text-align: center; margin-top: 24px;">
+    <a href="{{ tracking_url }}" style="color: #3B82F6;">View full tracking history →</a>
+</p>
+
+<p style="margin-top: 24px;">
+    Thank you for choosing {{ app_name }} for your shipping needs.
+</p>
+
+<p style="margin-top: 24px;">
+    Best regards,<br>
+    The {{ app_name }} Team
+</p>
+{% endblock %}

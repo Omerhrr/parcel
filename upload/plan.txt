@@ -1,0 +1,536 @@
+{
+  "project": {
+    "name": "ParcelFlow",
+    "phases": {
+      "phase_1": "Logistics Platform",
+      "phase_2": "Ecommerce CRM"
+    }
+  },
+
+  "tech_stack": {
+    "backend": ["FastAPI", "SQLAlchemy"],
+    "frontend_app": ["Flask", "HTMX", "AlpineJS", "TailwindCSS", "Flowbite", "ECharts"],
+    "website": ["Flask", "HTMX", "AlpineJS", "TailwindCSS", "Flowbite"],
+    "database": ["Sqlite ( for building)",PostgreSQL (when going live)"],
+    "auth": "JWT",
+    "future_scaling": ["Redis", "Celery", "Message Queue"]
+  },
+
+  "architecture": {
+    "multi_tenant": {
+      "tenant_entity": "business",
+      "isolation_fields": ["business_id", "branch_id"],
+      "branch_scoped_data": true
+    },
+
+    "project_structure": {
+      "backend": "API + business logic",
+      "frontend": "internal dashboard",
+      "website": "marketing + signup + billing"
+    }
+  },
+
+  "core_entities": {
+
+    "businesses": [
+      "id",
+      "name",
+      "email",
+      "phone",
+      "plan",
+      "created_at"
+    ],
+
+    "branches": [
+      "id",
+      "business_id",
+      "name",
+      "currency",
+      "country",
+      "city",
+      "timezone"
+    ],
+
+    "users": [
+      "id",
+      "business_id",
+      "branch_id",
+      "name",
+      "email",
+      "phone",
+      "password_hash",
+      "role_id",
+      "status"
+    ]
+  },
+
+  "rbac": {
+
+    "roles": [
+      "super_admin",
+      "admin",
+      "manager",
+      "sales_agent",
+      "dispatcher",
+      "warehouse_staff",
+      "viewer",
+      "vendor_user"
+    ],
+
+    "permissions": [
+      "users.create",
+      "users.update",
+      "branches.create",
+      "orders.view",
+      "orders.assign",
+      "orders.update",
+      "inventory.view",
+      "inventory.update",
+      "vendors.manage",
+      "deliveries.assign",
+      "agents.manage",
+      "accounting.view"
+    ]
+  },
+
+  "logistics_system": {
+
+    "shipment_types": [
+      "warehouse_delivery",
+      "pickup_delivery",
+      "dropoff_delivery"
+    ],
+
+    "waybills": {
+      "fields": [
+        "id",
+        "waybill_number",
+        "business_id",
+        "branch_id",
+        "shipment_type",
+        "sender_name",
+        "sender_phone",
+        "sender_address",
+        "receiver_name",
+        "receiver_phone",
+        "receiver_address",
+        "weight",
+        "value",
+        "delivery_fee",
+        "payment_type",
+        "status"
+      ],
+
+      "statuses": [
+        "created",
+        "pickup_scheduled",
+        "picked_up",
+        "at_warehouse",
+        "out_for_delivery",
+        "delivered",
+        "failed",
+        "returned"
+      ]
+    },
+
+    "pickups": {
+      "fields": [
+        "id",
+        "waybill_id",
+        "pickup_address",
+        "pickup_contact",
+        "pickup_date",
+        "agent_id",
+        "status"
+      ],
+
+      "statuses": [
+        "scheduled",
+        "agent_assigned",
+        "picked_up",
+        "failed"
+      ]
+    },
+
+    "dropoffs": {
+      "fields": [
+        "id",
+        "waybill_id",
+        "branch_id",
+        "received_by_user",
+        "received_at"
+      ]
+    },
+
+    "warehouse_processing": {
+      "fields": [
+        "id",
+        "waybill_id",
+        "warehouse_id",
+        "received_by",
+        "received_at",
+        "status"
+      ],
+
+      "statuses": [
+        "received",
+        "sorted",
+        "ready_for_dispatch"
+      ]
+    },
+
+    "dispatch": {
+      "fields": [
+        "id",
+        "waybill_id",
+        "agent_id",
+        "vehicle_id",
+        "dispatch_time",
+        "status"
+      ]
+    },
+
+    "delivery_confirmation": {
+      "fields": [
+        "id",
+        "waybill_id",
+        "agent_id",
+        "delivered_at",
+        "receiver_name",
+        "receiver_signature",
+        "proof_photo",
+        "status"
+      ]
+    },
+
+    "tracking_events": {
+      "fields": [
+        "id",
+        "waybill_id",
+        "status",
+        "location",
+        "description",
+        "created_at"
+      ]
+    }
+  },
+
+  "warehouse_inventory": {
+
+    "warehouses": [
+      "id",
+      "branch_id",
+      "name",
+      "location"
+    ],
+
+    "products": [
+      "id",
+      "vendor_id",
+      "name",
+      "sku",
+      "price",
+      "weight"
+    ],
+
+    "inventory": [
+      "product_id",
+      "warehouse_id",
+      "quantity"
+    ],
+
+    "stock_movements": [
+      "id",
+      "product_id",
+      "movement_type",
+      "quantity",
+      "reference_type",
+      "reference_id"
+    ],
+
+    "movement_types": [
+      "in",
+      "out",
+      "transfer",
+      "return"
+    ]
+  },
+
+  "vendors": {
+
+    "vendors": [
+      "id",
+      "business_id",
+      "name",
+      "phone",
+      "email"
+    ],
+
+    "vendor_users": [
+      "id",
+      "vendor_id",
+      "user_id"
+    ],
+
+    "vendor_features": [
+      "view_inventory",
+      "view_orders",
+      "view_deliveries",
+      "view_remittance"
+    ]
+  },
+
+  "agents": {
+
+    "logistic_agents": [
+      "id",
+      "branch_id",
+      "name",
+      "phone",
+      "vehicle_type",
+      "status"
+    ],
+
+    "vehicle_types": [
+      "bike",
+      "van",
+      "truck",
+      "third_party"
+    ],
+
+    "agent_dashboard_metrics": [
+      "deliveries_today",
+      "completed_deliveries",
+      "failed_deliveries",
+      "return_rate"
+    ]
+  },
+
+  "orders_system": {
+
+    "orders": [
+      "id",
+      "customer_id",
+      "branch_id",
+      "total_amount",
+      "delivery_fee",
+      "payment_method",
+      "payment_status"
+    ],
+
+    "order_items": [
+      "order_id",
+      "product_id",
+      "quantity",
+      "price"
+    ],
+
+    "order_assignments": [
+      "order_id",
+      "assigned_to_user_id",
+      "assigned_by_user_id",
+      "assigned_at"
+    ]
+  },
+
+  "lead_system": {
+
+    "leads": [
+      "id",
+      "name",
+      "phone",
+      "product",
+      "source",
+      "status"
+    ],
+
+    "lead_statuses": [
+      "new",
+      "contacted",
+      "confirmed",
+      "rejected",
+      "converted"
+    ]
+  },
+
+  "wordpress_integration": {
+
+    "plugin_features": [
+      "landing_page_order_form",
+      "api_submission",
+      "webhook_support",
+      "order_tracking"
+    ],
+
+    "api_endpoint": "/api/orders/landing",
+
+    "form_fields": [
+      "name",
+      "phone",
+      "address",
+      "product_id",
+      "quantity",
+      "city"
+    ]
+  },
+
+  "accounting_system": {
+
+    "chart_of_accounts": [
+      "cash",
+      "bank",
+      "accounts_receivable",
+      "accounts_payable",
+      "vendor_payable",
+      "delivery_income",
+      "product_sales",
+      "delivery_expenses",
+      "operational_expenses"
+    ],
+
+    "transactions": [
+      "id",
+      "account_id",
+      "amount",
+      "transaction_type",
+      "reference_type",
+      "reference_id"
+    ],
+
+    "transaction_types": [
+      "debit",
+      "credit"
+    ],
+
+    "expenses": [
+      "id",
+      "branch_id",
+      "category",
+      "amount",
+      "description"
+    ],
+
+    "expense_categories": [
+      "fuel",
+      "salary",
+      "transport",
+      "packaging",
+      "office_rent"
+    ],
+
+    "vendor_ledger": [
+      "id",
+      "vendor_id",
+      "order_id",
+      "credit",
+      "debit",
+      "balance"
+    ],
+
+    "agent_collections": [
+      "id",
+      "agent_id",
+      "order_id",
+      "amount_collected",
+      "remitted"
+    ],
+
+    "remittances": [
+      "id",
+      "vendor_id",
+      "amount",
+      "status"
+    ],
+
+    "financial_reports": [
+      "daily_revenue",
+      "delivery_income",
+      "vendor_balance",
+      "agent_unremitted_cash",
+      "expense_summary"
+    ]
+  },
+
+  "tracking_portal": {
+
+    "public_tracking": {
+      "url": "/track/{waybill_number}",
+      "features": [
+        "shipment_status",
+        "tracking_timeline",
+        "delivery_estimate"
+      ]
+    }
+  },
+
+  "analytics_dashboards": {
+
+    "logistics_dashboard": [
+      "orders_today",
+      "pending_deliveries",
+      "inventory_value",
+      "returns_rate",
+      "vendor_balances"
+    ],
+
+    "financial_dashboard": [
+      "total_revenue_today",
+      "cash_collected_today",
+      "agent_unremitted_cash",
+      "total_expenses"
+    ]
+  },
+
+  "future_crm": {
+
+    "customers": [
+      "customers",
+      "customer_notes",
+      "customer_activities"
+    ],
+
+    "conversations": [
+      "conversations",
+      "messages",
+      "channels"
+    ],
+
+    "campaigns": [
+      "campaigns",
+      "campaign_messages",
+      "campaign_audience"
+    ],
+
+    "automation": [
+      "automation_rules",
+      "automation_actions"
+    ],
+
+    "segments": [
+      "segments",
+      "segment_rules"
+    ]
+  },
+
+  "security": {
+
+    "features": [
+      "jwt_authentication",
+      "rbac_permissions",
+      "tenant_isolation",
+      "branch_isolation",
+      "rate_limiting",
+      "audit_logs"
+    ]
+  },
+
+  "future_features": [
+
+    "route_optimization",
+    "fraud_detection",
+    "cod_verification",
+    "sms_notifications",
+    "whatsapp_notifications",
+    "ai_delivery_prediction"
+  ]
+}
