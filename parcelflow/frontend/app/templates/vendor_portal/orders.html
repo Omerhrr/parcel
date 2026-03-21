@@ -52,8 +52,9 @@
                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ order.customer_phone }}</div>
                     </td>
                     <td class="px-5 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
-                        {% for item in order.items[:2] %}{{ item.quantity }}x {{ item.product_name }}{% if not loop.last %}, {% endif %}{% endfor %}
-                        {% if order.items | length > 2 %}...+{{ order.items | length - 2 }} more{% endif %}
+                        {% set order_items = order['items'] %}
+                        {% for item in order_items[:2] %}{{ item.quantity }}x {{ item.product_name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                        {% if order_items | length > 2 %}...+{{ order_items | length - 2 }} more{% endif %}
                     </td>
                     <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-right">₦{{ "%.2f" % order.total_amount }}</td>
                     <td class="px-5 py-4 whitespace-nowrap">
