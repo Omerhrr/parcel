@@ -414,7 +414,6 @@ async def receive_stock_request(
                 warehouse_id=stock_request.warehouse_id,
                 vendor_id=vendor_id,
                 quantity=reception.received_quantity,
-                unit_cost=stock_request.unit_cost,
                 reserved_quantity=0,
                 available_quantity=reception.received_quantity
             )
