@@ -158,13 +158,14 @@ def create_order():
         for i in range(int(request.form.get('item_count', 1))):
             product_id = request.form.get(f'product_id_{i}')
             product_name = request.form.get(f'product_name_{i}')
-            quantity = int(request.form.get(f'quantity_{i}', 1))
-            unit_price = float(request.form.get(f'unit_price_{i}', 0))
-            
-            if product_name and quantity > 0:
+            quantity = int(request.form.get(f'quantity_{i}', 1) or 1)
+            unit_price_str = request.form.get(f'unit_price_{i}', '0') or '0'
+            unit_price = float(unit_price_str) if unit_price_str else 0.0
+
+            if product_id and quantity > 0:
                 items.append({
                     'product_id': int(product_id) if product_id else None,
-                    'product_name': product_name,
+                    'product_name': product_name or '',
                     'quantity': quantity,
                     'unit_price': unit_price,
                     'discount': 0
@@ -179,7 +180,7 @@ def create_order():
             'delivery_state': request.form.get('delivery_state'),
             'delivery_landmark': request.form.get('delivery_landmark'),
             'items': items,
-            'delivery_fee': float(request.form.get('delivery_fee', 0)),
+            'delivery_fee': float(request.form.get('delivery_fee', '0') or '0'),
             'payment_method': request.form.get('payment_method', 'cod'),
             'notes': request.form.get('notes')
         }
