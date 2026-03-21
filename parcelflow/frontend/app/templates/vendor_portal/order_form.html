@@ -77,14 +77,20 @@
             <div id="itemsContainer">
                 <!-- Item 0 -->
                 <div class="item-row mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30" data-index="0">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product *</label>
                             <select name="product_id_0" id="product_id_0" onchange="updateProduct(0)" required
                                     class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
                                 <option value="">Select a product</option>
                                 {% for p in products %}
-                                <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} - ₦{{ "%.2f" % p.selling_price }}</option>
+                                <option value="{{ p.id }}" 
+                                        data-price="{{ p.selling_price }}" 
+                                        data-name="{{ p.name }}"
+                                        data-pricing-type="{{ p.pricing_type }}"
+                                        data-pricing-matrix="{{ p.pricing_matrix | tojson }}">
+                                    {{ p.name }} - ₦{{ "%.2f" % p.selling_price }}{% if p.pricing_type == 'matrix' %} (dynamic){% endif %}
+                                </option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" name="product_name_0" id="product_name_0">
@@ -92,12 +98,17 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity *</label>
-                            <input type="number" name="quantity_0" id="quantity_0" min="1" value="1" required onchange="calculateTotal()"
+                            <input type="number" name="quantity_0" id="quantity_0" min="1" value="1" required oninput="updatePriceForQuantity(0)"
                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price (₦)</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (₦)</label>
                             <div class="px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-lg text-gray-900 dark:text-white font-medium" id="price_display_0">0.00</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Line Total (₦)</label>
+                            <div class="px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-lg text-gray-900 dark:text-white font-medium" id="line_total_0">0.00</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="price_tier_info_0"></div>
                         </div>
                     </div>
                 </div>
@@ -116,7 +127,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <label for="delivery_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Fee (₦)</label>
-                    <input type="number" name="delivery_fee" id="delivery_fee" min="0" step="0.01" value="0" onchange="calculateTotal()"
+                    <input type="number" name="delivery_fee" id="delivery_fee" min="0" step="0.01" value="0" oninput="calculateTotal()"
                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
                 </div>
                 <div>
@@ -159,18 +170,36 @@
 <script>
     let itemIndex = 1;
     
+    // Store product data for dynamic pricing
+    const productsData = {
+        {% for p in products %}
+        {{ p.id }}: {
+            name: "{{ p.name }}",
+            selling_price: {{ p.selling_price }},
+            pricing_type: "{{ p.pricing_type }}",
+            pricing_matrix: {{ p.pricing_matrix | tojson }}
+        },
+        {% endfor %}
+    };
+    
     function addItem() {
         const container = document.getElementById('itemsContainer');
         const html = `
             <div class="item-row mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30" data-index="${itemIndex}">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product *</label>
                         <select name="product_id_${itemIndex}" id="product_id_${itemIndex}" onchange="updateProduct(${itemIndex})" required
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                             <option value="">Select a product</option>
                             {% for p in products %}
-                            <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-name="{{ p.name }}">{{ p.name }} - ₦{{ "%.2f" % p.selling_price }}</option>
+                            <option value="{{ p.id }}" 
+                                    data-price="{{ p.selling_price }}" 
+                                    data-name="{{ p.name }}"
+                                    data-pricing-type="{{ p.pricing_type }}"
+                                    data-pricing-matrix="{{ p.pricing_matrix | tojson }}">
+                                {{ p.name }} - ₦{{ "%.2f" % p.selling_price }}{% if p.pricing_type == 'matrix' %} (dynamic){% endif %}
+                            </option>
                             {% endfor %}
                         </select>
                         <input type="hidden" name="product_name_${itemIndex}" id="product_name_${itemIndex}">
@@ -178,13 +207,20 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity *</label>
-                        <input type="number" name="quantity_${itemIndex}" id="quantity_${itemIndex}" min="1" value="1" required onchange="calculateTotal()"
+                        <input type="number" name="quantity_${itemIndex}" id="quantity_${itemIndex}" min="1" value="1" required oninput="updatePriceForQuantity(${itemIndex})"
                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (₦)</label>
+                        <div class="px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-lg text-gray-900 dark:text-white font-medium" id="price_display_${itemIndex}">0.00</div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">&nbsp;</label>
                         <div class="flex">
-                            <div class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-l-lg text-gray-900 dark:text-white font-medium" id="price_display_${itemIndex}">0.00</div>
+                            <div class="flex-1">
+                                <div class="px-4 py-2.5 bg-gray-100 dark:bg-gray-600 rounded-l-lg text-gray-900 dark:text-white font-medium" id="line_total_${itemIndex}">0.00</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="price_tier_info_${itemIndex}"></div>
+                            </div>
                             <button type="button" onclick="removeItem(${itemIndex})" class="px-3 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-r-lg transition-colors">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -207,21 +243,101 @@
     }
     
     function updateProduct(index) {
+        updatePriceForQuantity(index);
+    }
+    
+    function calculateDynamicPrice(productId, quantity) {
+        const product = productsData[productId];
+        if (!product) return { unitPrice: 0, totalPrice: 0, tierInfo: '' };
+        
+        // If fixed pricing or no matrix, use base price
+        if (product.pricing_type !== 'matrix' || !product.pricing_matrix || product.pricing_matrix.length === 0) {
+            const unitPrice = product.selling_price;
+            return {
+                unitPrice: unitPrice,
+                totalPrice: unitPrice * quantity,
+                tierInfo: ''
+            };
+        }
+        
+        // Find applicable pricing tier
+        let applicableTier = null;
+        for (const tier of product.pricing_matrix) {
+            if (quantity >= tier.min_quantity) {
+                if (tier.max_quantity === null || quantity <= tier.max_quantity) {
+                    applicableTier = tier;
+                }
+            }
+        }
+        
+        if (!applicableTier) {
+            // Fallback to base price
+            const unitPrice = product.selling_price;
+            return {
+                unitPrice: unitPrice,
+                totalPrice: unitPrice * quantity,
+                tierInfo: ''
+            };
+        }
+        
+        // Calculate price based on tier
+        let unitPrice, totalPrice;
+        let tierInfo = applicableTier.label || '';
+        
+        if (applicableTier.total_price) {
+            // Fixed total price for quantity (e.g., 2 for ₦30,000)
+            totalPrice = parseFloat(applicableTier.total_price);
+            unitPrice = totalPrice / quantity;
+            if (!tierInfo) {
+                tierInfo = `${quantity} for ₦${totalPrice.toLocaleString()}`;
+            }
+        } else {
+            // Unit price tier
+            unitPrice = parseFloat(applicableTier.price);
+            totalPrice = unitPrice * quantity;
+            if (!tierInfo && applicableTier.min_quantity > 1) {
+                tierInfo = `${applicableTier.min_quantity}+ units: ₦${unitPrice.toLocaleString()} each`;
+            }
+        }
+        
+        // Handle Buy X Get Y
+        if (applicableTier.is_buy_x_get_y && applicableTier.buy_quantity && applicableTier.get_quantity) {
+            tierInfo = `Buy ${applicableTier.buy_quantity} Get ${applicableTier.get_quantity} Free`;
+        }
+        
+        return { unitPrice, totalPrice, tierInfo };
+    }
+    
+    function updatePriceForQuantity(index) {
         const select = document.getElementById(`product_id_${index}`);
-        const option = select.options[select.selectedIndex];
+        const quantityInput = document.getElementById(`quantity_${index}`);
         const nameInput = document.getElementById(`product_name_${index}`);
         const priceInput = document.getElementById(`unit_price_${index}`);
         const priceDisplay = document.getElementById(`price_display_${index}`);
+        const lineTotalDisplay = document.getElementById(`line_total_${index}`);
+        const tierInfoDisplay = document.getElementById(`price_tier_info_${index}`);
         
-        if (option.value) {
-            nameInput.value = option.dataset.name || '';
-            priceInput.value = option.dataset.price || 0;
-            priceDisplay.textContent = parseFloat(option.dataset.price || 0).toFixed(2);
+        const productId = parseInt(select?.value);
+        const quantity = parseInt(quantityInput?.value) || 1;
+        
+        if (productId && productsData[productId]) {
+            const product = productsData[productId];
+            nameInput.value = product.name;
+            
+            const priceResult = calculateDynamicPrice(productId, quantity);
+            
+            priceInput.value = priceResult.unitPrice.toFixed(2);
+            priceDisplay.textContent = priceResult.unitPrice.toFixed(2);
+            lineTotalDisplay.textContent = priceResult.totalPrice.toFixed(2);
+            tierInfoDisplay.textContent = priceResult.tierInfo;
+            
             calculateTotal();
         } else {
             nameInput.value = '';
             priceInput.value = 0;
             priceDisplay.textContent = '0.00';
+            lineTotalDisplay.textContent = '0.00';
+            tierInfoDisplay.textContent = '';
         }
     }
     
@@ -229,9 +345,13 @@
         let subtotal = 0;
         document.querySelectorAll('.item-row').forEach(row => {
             const index = row.dataset.index;
-            const qty = parseFloat(document.getElementById(`quantity_${index}`)?.value) || 0;
-            const price = parseFloat(document.getElementById(`unit_price_${index}`)?.value) || 0;
-            subtotal += qty * price;
+            const qty = parseInt(document.getElementById(`quantity_${index}`)?.value) || 0;
+            const productId = parseInt(document.getElementById(`product_id_${index}`)?.value);
+            
+            if (productId && productsData[productId]) {
+                const priceResult = calculateDynamicPrice(productId, qty);
+                subtotal += priceResult.totalPrice;
+            }
         });
         
         const deliveryFee = parseFloat(document.getElementById('delivery_fee')?.value) || 0;

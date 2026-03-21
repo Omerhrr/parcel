@@ -213,7 +213,7 @@ async def create_vendor_order(
     # Generate order number
     order_number = Order.generate_order_number()
 
-    # Calculate prices
+    # Calculate prices using dynamic pricing
     subtotal = Decimal("0")
     processed_items = []
 
@@ -225,13 +225,22 @@ async def create_vendor_order(
             ).first()
 
             if product:
-                unit_price = product.selling_price or item_req.unit_price
+                # Use dynamic pricing if available
+                if product.pricing_type == "matrix" and product.pricing_matrix:
+                    # Calculate total price using pricing matrix
+                    item_total = Decimal(str(product.get_total_price_for_quantity(item_req.quantity)))
+                    unit_price = item_total / item_req.quantity if item_req.quantity > 0 else Decimal("0")
+                else:
+                    # Use fixed pricing
+                    unit_price = product.selling_price or item_req.unit_price
+                    item_total = item_req.quantity * unit_price - item_req.discount
             else:
                 unit_price = item_req.unit_price
+                item_total = item_req.quantity * unit_price - item_req.discount
         else:
             unit_price = item_req.unit_price
+            item_total = item_req.quantity * unit_price - item_req.discount
 
-        item_total = item_req.quantity * unit_price - item_req.discount
         subtotal += item_total
 
         processed_items.append({
@@ -665,6 +674,21 @@ async def list_vendor_products(
             "description": p.description,
             "selling_price": float(p.selling_price) if p.selling_price else 0,
             "cost_price": float(p.cost_price) if p.cost_price else 0,
+            "pricing_type": p.pricing_type or "fixed",
+            "pricing_matrix": [
+                {
+                    "id": t.id,
+                    "min_quantity": t.min_quantity,
+                    "max_quantity": t.max_quantity,
+                    "price": float(t.price) if t.price else 0,
+                    "total_price": float(t.total_price) if t.total_price else None,
+                    "label": t.label,
+                    "is_buy_x_get_y": t.is_buy_x_get_y,
+                    "buy_quantity": t.buy_quantity,
+                    "get_quantity": t.get_quantity
+                }
+                for t in p.pricing_matrix
+            ] if p.pricing_matrix else [],
             "image_url": p.image_url,
             "is_active": p.is_active,
             "created_at": p.created_at
