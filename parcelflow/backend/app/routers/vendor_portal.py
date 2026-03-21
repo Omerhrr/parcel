@@ -374,7 +374,7 @@ async def list_vendor_inventory(
             "quantity": i.quantity,
             "reserved_quantity": i.reserved_quantity or 0,
             "available_quantity": i.quantity - (i.reserved_quantity or 0),
-            "unit_cost": float(i.unit_cost) if i.unit_cost else 0,
+            "unit_cost": float(i.product.cost_price) if i.product and i.product.cost_price else 0,
             "selling_price": float(i.product.selling_price) if i.product and i.product.selling_price else 0,
             "updated_at": i.updated_at
         }
