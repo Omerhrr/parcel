@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # JWT Authentication
     # IMPORTANT: Set SECRET_KEY environment variable in production!
     # Use: python -c "import secrets; print(secrets.token_urlsafe(32))"
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", "")  # No default - must be set
+    SECRET_KEY: str = "xbS4cwWYR6hGW11HksODSSOjqvL9-ldP1sJ_zLOBvaA"#os.environ.get("SECRET_KEY", "")  # No default - must be set
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 8  # 8 hours (reduced from 24 for security)
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
